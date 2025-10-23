@@ -4,72 +4,72 @@ Copyright (C) 2022 Strudel contributors - see <https://codeberg.org/uzu/strudel/
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Pattern, register, reify } from './pattern.mjs';
+import { Pattern, register, reify } from './pattern.mjs'
 
 export function createParam(names) {
-  let isMulti = Array.isArray(names);
-  names = !isMulti ? [names] : names;
-  const name = names[0];
+  let isMulti = Array.isArray(names)
+  names = !isMulti ? [names] : names
+  const name = names[0]
 
   // todo: make this less confusing
   const withVal = (xs) => {
-    let bag;
+    let bag
     // check if we have an object with an unnamed control (.value)
     if (typeof xs === 'object' && xs.value !== undefined) {
-      bag = { ...xs }; // grab props that are already there
-      xs = xs.value; // grab the unnamed control for this one
-      delete bag.value;
+      bag = { ...xs } // grab props that are already there
+      xs = xs.value // grab the unnamed control for this one
+      delete bag.value
     }
     if (isMulti && Array.isArray(xs)) {
-      const result = bag || {};
+      const result = bag || {}
       xs.forEach((x, i) => {
         if (i < names.length) {
-          result[names[i]] = x;
+          result[names[i]] = x
         }
-      });
-      return result;
+      })
+      return result
     } else if (bag) {
-      bag[name] = xs;
-      return bag;
+      bag[name] = xs
+      return bag
     } else {
-      return { [name]: xs };
+      return { [name]: xs }
     }
-  };
+  }
 
   // todo: make this less confusing
   const func = function (value, pat) {
     if (!pat) {
-      return reify(value).withValue(withVal);
+      return reify(value).withValue(withVal)
     }
     if (typeof value === 'undefined') {
-      return pat.fmap(withVal);
+      return pat.fmap(withVal)
     }
-    return pat.set(reify(value).withValue(withVal));
-  };
+    return pat.set(reify(value).withValue(withVal))
+  }
   Pattern.prototype[name] = function (value) {
-    return func(value, this);
-  };
-  return func;
+    return func(value, this)
+  }
+  return func
 }
 
 // maps control alias names to the "main" control name
-const controlAlias = new Map();
+const controlAlias = new Map()
 
 export function isControlName(name) {
-  return controlAlias.has(name);
+  return controlAlias.has(name)
 }
 
 export function registerControl(names, ...aliases) {
-  const name = Array.isArray(names) ? names[0] : names;
-  let bag = {};
-  bag[name] = createParam(names);
-  controlAlias.set(name, name);
+  const name = Array.isArray(names) ? names[0] : names
+  let bag = {}
+  bag[name] = createParam(names)
+  controlAlias.set(name, name)
   aliases.forEach((alias) => {
-    bag[alias] = bag[name];
-    controlAlias.set(alias, name);
-    Pattern.prototype[alias] = Pattern.prototype[name];
-  });
-  return bag;
+    bag[alias] = bag[name]
+    controlAlias.set(alias, name)
+    Pattern.prototype[alias] = Pattern.prototype[name]
+  })
+  return bag
 }
 
 /**
@@ -85,7 +85,7 @@ export function registerControl(names, ...aliases) {
  * s("bd:0 bd:1 bd:0:0.3 bd:1:1.4")
  *
  */
-export const { s, sound } = registerControl(['s', 'n', 'gain'], 'sound');
+export const { s, sound } = registerControl(['s', 'n', 'gain'], 'sound')
 
 /**
  * Position in the wavetable of the wavetable oscillator
@@ -96,7 +96,7 @@ export const { s, sound } = registerControl(['s', 'n', 'gain'], 'sound');
  * @example
  * s("squelch").bank("wt_digital").seg(8).note("F1").wt("0 0.25 0.5 0.75 1")
  */
-export const { wt, wavetablePosition } = registerControl('wt', 'wavetablePosition');
+export const { wt, wavetablePosition } = registerControl('wt', 'wavetablePosition')
 
 /**
  * Amount of envelope applied wavetable oscillator's position envelope
@@ -104,7 +104,7 @@ export const { wt, wavetablePosition } = registerControl('wt', 'wavetablePositio
  * @name wtenv
  * @param {number | Pattern} amount between 0 and 1
  */
-export const { wtenv } = registerControl('wtenv');
+export const { wtenv } = registerControl('wtenv')
 /**
  * Attack time of the wavetable oscillator's position envelope
  *
@@ -112,7 +112,7 @@ export const { wtenv } = registerControl('wtenv');
  * @synonyms wtatt
  * @param {number | Pattern} time attack time in seconds
  */
-export const { wtattack, wtatt } = registerControl('wtattack', 'wtatt');
+export const { wtattack, wtatt } = registerControl('wtattack', 'wtatt')
 
 /**
  * Decay time of the wavetable oscillator's position envelope
@@ -121,7 +121,7 @@ export const { wtattack, wtatt } = registerControl('wtattack', 'wtatt');
  * @synonyms wtdec
  * @param {number | Pattern} time decay time in seconds
  */
-export const { wtdecay, wtdec } = registerControl('wtdecay', 'wtdec');
+export const { wtdecay, wtdec } = registerControl('wtdecay', 'wtdec')
 
 /**
  * Sustain time of the wavetable oscillator's position envelope
@@ -130,7 +130,7 @@ export const { wtdecay, wtdec } = registerControl('wtdecay', 'wtdec');
  * @synonyms wtsus
  * @param {number | Pattern} gain sustain level (0 to 1)
  */
-export const { wtsustain, wtsus } = registerControl('wtsustain', 'wtsus');
+export const { wtsustain, wtsus } = registerControl('wtsustain', 'wtsus')
 
 /**
  * Release time of the wavetable oscillator's position envelope
@@ -139,7 +139,7 @@ export const { wtsustain, wtsus } = registerControl('wtsustain', 'wtsus');
  * @synonyms wtrel
  * @param {number | Pattern} time release time in seconds
  */
-export const { wtrelease, wtrel } = registerControl('wtrelease', 'wtrel');
+export const { wtrelease, wtrel } = registerControl('wtrelease', 'wtrel')
 
 /**
  * Rate of the LFO for the wavetable oscillator's position
@@ -147,14 +147,14 @@ export const { wtrelease, wtrel } = registerControl('wtrelease', 'wtrel');
  * @name wtrate
  * @param {number | Pattern} rate rate in hertz
  */
-export const { wtrate } = registerControl('wtrate');
+export const { wtrate } = registerControl('wtrate')
 /**
  * cycle synced rate of the LFO for the wavetable oscillator's position
  *
  * @name wtsync
  * @param {number | Pattern} rate rate in cycles
  */
-export const { wtsync } = registerControl('wtsync');
+export const { wtsync } = registerControl('wtsync')
 
 /**
  * Depth of the LFO for the wavetable oscillator's position
@@ -162,7 +162,7 @@ export const { wtsync } = registerControl('wtsync');
  * @name wtdepth
  * @param {number | Pattern} depth depth of modulation
  */
-export const { wtdepth } = registerControl('wtdepth');
+export const { wtdepth } = registerControl('wtdepth')
 
 /**
  * Shape of the LFO for the wavetable oscillator's position
@@ -170,7 +170,7 @@ export const { wtdepth } = registerControl('wtdepth');
  * @name wtshape
  * @param {number | Pattern} shape Shape of the lfo (0, 1, 2, ..)
  */
-export const { wtshape } = registerControl('wtshape');
+export const { wtshape } = registerControl('wtshape')
 
 /**
  * DC offset of the LFO for the wavetable oscillator's position
@@ -178,7 +178,7 @@ export const { wtshape } = registerControl('wtshape');
  * @name wtdc
  * @param {number | Pattern} dcoffset dc offset. set to 0 for unipolar
  */
-export const { wtdc } = registerControl('wtdc');
+export const { wtdc } = registerControl('wtdc')
 
 /**
  * Skew of the LFO for the wavetable oscillator's position
@@ -186,7 +186,7 @@ export const { wtdc } = registerControl('wtdc');
  * @name wtskew
  * @param {number | Pattern} skew How much to bend the LFO shape
  */
-export const { wtskew } = registerControl('wtskew');
+export const { wtskew } = registerControl('wtskew')
 
 /**
  * Amount of warp (alteration of the waveform) to apply to the wavetable oscillator
@@ -198,7 +198,7 @@ export const { wtskew } = registerControl('wtskew');
  * s("basique").bank("wt_digital").seg(8).note("F1").warp("0 0.25 0.5 0.75 1")
  *   .warpmode("spin")
  */
-export const { warp, wavetableWarp } = registerControl('warp', 'wavetableWarp');
+export const { warp, wavetableWarp } = registerControl('warp', 'wavetableWarp')
 
 /**
  * Attack time of the wavetable oscillator's warp envelope
@@ -207,7 +207,7 @@ export const { warp, wavetableWarp } = registerControl('warp', 'wavetableWarp');
  * @synonyms warpatt
  * @param {number | Pattern} time attack time in seconds
  */
-export const { warpattack, warpatt } = registerControl('warpattack', 'warpatt');
+export const { warpattack, warpatt } = registerControl('warpattack', 'warpatt')
 
 /**
  * Decay time of the wavetable oscillator's warp envelope
@@ -216,7 +216,7 @@ export const { warpattack, warpatt } = registerControl('warpattack', 'warpatt');
  * @synonyms warpdec
  * @param {number | Pattern} time decay time in seconds
  */
-export const { warpdecay, warpdec } = registerControl('warpdecay', 'warpdec');
+export const { warpdecay, warpdec } = registerControl('warpdecay', 'warpdec')
 
 /**
  * Sustain time of the wavetable oscillator's warp envelope
@@ -225,7 +225,7 @@ export const { warpdecay, warpdec } = registerControl('warpdecay', 'warpdec');
  * @synonyms warpsus
  * @param {number | Pattern} gain sustain level (0 to 1)
  */
-export const { warpsustain, warpsus } = registerControl('warpsustain', 'warpsus');
+export const { warpsustain, warpsus } = registerControl('warpsustain', 'warpsus')
 
 /**
  * Release time of the wavetable oscillator's warp envelope
@@ -234,7 +234,7 @@ export const { warpsustain, warpsus } = registerControl('warpsustain', 'warpsus'
  * @synonyms warprel
  * @param {number | Pattern} time release time in seconds
  */
-export const { warprelease, warprel } = registerControl('warprelease', 'warprel');
+export const { warprelease, warprel } = registerControl('warprelease', 'warprel')
 
 /**
  * Rate of the LFO for the wavetable oscillator's warp
@@ -242,7 +242,7 @@ export const { warprelease, warprel } = registerControl('warprelease', 'warprel'
  * @name warprate
  * @param {number | Pattern} rate rate in hertz
  */
-export const { warprate } = registerControl('warprate');
+export const { warprate } = registerControl('warprate')
 
 /**
  * Depth of the LFO for the wavetable oscillator's warp
@@ -250,7 +250,7 @@ export const { warprate } = registerControl('warprate');
  * @name warpdepth
  * @param {number | Pattern} depth depth of modulation
  */
-export const { warpdepth } = registerControl('warpdepth');
+export const { warpdepth } = registerControl('warpdepth')
 
 /**
  * Shape of the LFO for the wavetable oscillator's warp
@@ -258,7 +258,7 @@ export const { warpdepth } = registerControl('warpdepth');
  * @name warpshape
  * @param {number | Pattern} shape Shape of the lfo (0, 1, 2, ..)
  */
-export const { warpshape } = registerControl('warpshape');
+export const { warpshape } = registerControl('warpshape')
 
 /**
  * DC offset of the LFO for the wavetable oscillator's warp
@@ -266,7 +266,7 @@ export const { warpshape } = registerControl('warpshape');
  * @name warpdc
  * @param {number | Pattern} dcoffset dc offset. set to 0 for unipolar
  */
-export const { warpdc } = registerControl('warpdc');
+export const { warpdc } = registerControl('warpdc')
 
 /**
  * Skew of the LFO for the wavetable oscillator's warp
@@ -274,7 +274,7 @@ export const { warpdc } = registerControl('warpdc');
  * @name warpskew
  * @param {number | Pattern} skew How much to bend the LFO shape
  */
-export const { warpskew } = registerControl('warpskew');
+export const { warpskew } = registerControl('warpskew')
 
 /**
  * Type of warp (alteration of the waveform) to apply to the wavetable oscillator.
@@ -290,7 +290,7 @@ export const { warpskew } = registerControl('warpskew');
  *   .warpmode("<asym bendp spin logistic sync wormhole brownian>*2")
  *
  */
-export const { warpmode, wavetableWarpMode } = registerControl('warpmode', 'wavetableWarpMode');
+export const { warpmode, wavetableWarpMode } = registerControl('warpmode', 'wavetableWarpMode')
 
 /**
  * Amount of randomness of the initial phase of the wavetable oscillator.
@@ -302,7 +302,10 @@ export const { warpmode, wavetableWarpMode } = registerControl('warpmode', 'wave
  * s("basique").bank("wt_digital").seg(16).wtphaserand("<0 1>")
  *
  */
-export const { wtphaserand, wavetablePhaseRand } = registerControl('wtphaserand', 'wavetablePhaseRand');
+export const { wtphaserand, wavetablePhaseRand } = registerControl(
+  'wtphaserand',
+  'wavetablePhaseRand'
+)
 
 /**
  * Amount of envelope applied wavetable oscillator's position envelope
@@ -310,7 +313,7 @@ export const { wtphaserand, wavetablePhaseRand } = registerControl('wtphaserand'
  * @name warpenv
  * @param {number | Pattern} amount between 0 and 1
  */
-export const { warpenv } = registerControl('warpenv');
+export const { warpenv } = registerControl('warpenv')
 
 /**
  * cycle synced rate of the LFO for the wavetable warp position
@@ -318,7 +321,7 @@ export const { warpenv } = registerControl('warpenv');
  * @name warpsync
  * @param {number | Pattern} rate rate in cycles
  */
-export const { warpsync } = registerControl('warpsync');
+export const { warpsync } = registerControl('warpsync')
 
 /**
  * Define a custom webaudio node to use as a sound source.
@@ -329,7 +332,7 @@ export const { warpsync } = registerControl('warpsync');
  * @synonyms src
  *
  */
-export const { source, src } = registerControl('source', 'src');
+export const { source, src } = registerControl('source', 'src')
 /**
  * Selects the given index from the sample map.
  * Numbers too high will wrap around.
@@ -341,7 +344,7 @@ export const { source, src } = registerControl('source', 'src');
  * s("bd sd [~ bd] sd,hh*6").n("<0 1>")
  */
 // also see https://codeberg.org/uzu/strudel/pulls/63
-export const { n } = registerControl('n');
+export const { n } = registerControl('n')
 /**
  * Plays the given note name or midi number. A note name consists of
  *
@@ -363,7 +366,7 @@ export const { n } = registerControl('n');
  * @example
  * note("fbb1 a#0 cbbb-1 e##-2").sound("saw")
  */
-export const { note } = registerControl(['note', 'n']);
+export const { note } = registerControl(['note', 'n'])
 
 /**
  * A pattern of numbers that speed up (or slow down) samples while they play. Currently only supported by osc / superdirt.
@@ -375,7 +378,7 @@ export const { note } = registerControl(['note', 'n']);
  * s("sax").accelerate("<0 1 2 4 8 16>").slow(2).osc()
  *
  */
-export const { accelerate } = registerControl('accelerate');
+export const { accelerate } = registerControl('accelerate')
 /**
  * Sets the velocity from 0 to 1. Is multiplied together with gain.
  *
@@ -385,7 +388,7 @@ export const { accelerate } = registerControl('accelerate');
  * .gain(".4!2 1 .4!2 1 .4 1")
  * .velocity(".4 1")
  */
-export const { velocity } = registerControl('velocity');
+export const { velocity } = registerControl('velocity')
 /**
  * Controls the gain by an exponential amount.
  *
@@ -395,7 +398,7 @@ export const { velocity } = registerControl('velocity');
  * s("hh*8").gain(".4!2 1 .4!2 1 .4 1").fast(2)
  *
  */
-export const { gain } = registerControl('gain');
+export const { gain } = registerControl('gain')
 /**
  * Gain applied after all effects have been processed.
  *
@@ -405,7 +408,7 @@ export const { gain } = registerControl('gain');
  * .compressor("-20:20:10:.002:.02").postgain(1.5)
  *
  */
-export const { postgain } = registerControl('postgain');
+export const { postgain } = registerControl('postgain')
 /**
  * Like `gain`, but linear.
  *
@@ -416,7 +419,7 @@ export const { postgain } = registerControl('postgain');
  * s("bd*8").amp(".1*2 .5 .1*2 .5 .1 .5").osc()
  *
  */
-export const { amp } = registerControl('amp');
+export const { amp } = registerControl('amp')
 /**
  * Amplitude envelope attack time: Specifies how long it takes for the sound to reach its peak value, relative to the onset.
  *
@@ -427,7 +430,7 @@ export const { amp } = registerControl('amp');
  * note("c3 e3 f3 g3").attack("<0 .1 .5>")
  *
  */
-export const { attack, att } = registerControl('attack', 'att');
+export const { attack, att } = registerControl('attack', 'att')
 
 /**
  * Sets the Frequency Modulation Harmonicity Ratio.
@@ -444,7 +447,7 @@ export const { attack, att } = registerControl('attack', 'att');
  * ._scope()
  *
  */
-export const { fmh } = registerControl(['fmh', 'fmi'], 'fmh');
+export const { fmh } = registerControl(['fmh', 'fmi'], 'fmh')
 /**
  * Sets the Frequency Modulation of the synth.
  * Controls the modulation index, which defines the brightness of the sound.
@@ -458,7 +461,7 @@ export const { fmh } = registerControl(['fmh', 'fmi'], 'fmh');
  * ._scope()
  *
  */
-export const { fmi, fm } = registerControl(['fmi', 'fmh'], 'fm');
+export const { fmi, fm } = registerControl(['fmi', 'fmh'], 'fm')
 // fm envelope
 /**
  * Ramp type of fm envelope. Exp might be a bit broken..
@@ -474,7 +477,7 @@ export const { fmi, fm } = registerControl(['fmi', 'fmh'], 'fm');
  * ._scope()
  *
  */
-export const { fmenv } = registerControl('fmenv');
+export const { fmenv } = registerControl('fmenv')
 /**
  * Attack time for the FM envelope: time it takes to reach maximum modulation
  *
@@ -487,7 +490,7 @@ export const { fmenv } = registerControl('fmenv');
  * ._scope()
  *
  */
-export const { fmattack } = registerControl('fmattack');
+export const { fmattack } = registerControl('fmattack')
 
 /**
  * Waveform of the fm modulator
@@ -500,7 +503,7 @@ export const { fmattack } = registerControl('fmattack');
  * n("0 1 2 3".fast(4)).chord("<Dm Am F G>").voicing().s("sawtooth").fmwave("brown").fm(.6)
  *
  */
-export const { fmwave } = registerControl('fmwave');
+export const { fmwave } = registerControl('fmwave')
 
 /**
  * Decay time for the FM envelope: seconds until the sustain level is reached after the attack phase.
@@ -515,7 +518,7 @@ export const { fmwave } = registerControl('fmwave');
  * ._scope()
  *
  */
-export const { fmdecay } = registerControl('fmdecay');
+export const { fmdecay } = registerControl('fmdecay')
 /**
  * Sustain level for the FM envelope: how much modulation is applied after the decay phase
  *
@@ -529,10 +532,10 @@ export const { fmdecay } = registerControl('fmdecay');
  * ._scope()
  *
  */
-export const { fmsustain } = registerControl('fmsustain');
+export const { fmsustain } = registerControl('fmsustain')
 // these are not really useful... skipping for now
-export const { fmrelease } = registerControl('fmrelease');
-export const { fmvelocity } = registerControl('fmvelocity');
+export const { fmrelease } = registerControl('fmrelease')
+export const { fmvelocity } = registerControl('fmvelocity')
 
 /**
  * Select the sound bank to use. To be used together with `s`. The bank name (+ "_") will be prepended to the value of `s`.
@@ -543,7 +546,7 @@ export const { fmvelocity } = registerControl('fmvelocity');
  * s("bd sd [~ bd] sd").bank('RolandTR909') // = s("RolandTR909_bd RolandTR909_sd")
  *
  */
-export const { bank } = registerControl('bank');
+export const { bank } = registerControl('bank')
 
 /**
  * mix control for the chorus effect
@@ -554,12 +557,12 @@ export const { bank } = registerControl('bank');
  * note("d d a# a").s("sawtooth").chorus(.5)
  *
  */
-export const { chorus } = registerControl('chorus');
+export const { chorus } = registerControl('chorus')
 
 // analyser node send amount 0 - 1 (used by scope)
-export const { analyze } = registerControl('analyze');
+export const { analyze } = registerControl('analyze')
 // fftSize of analyser
-export const { fft } = registerControl('fft');
+export const { fft } = registerControl('fft')
 
 /**
  * Amplitude envelope decay time: the time it takes after the attack time to reach the sustain level.
@@ -572,7 +575,7 @@ export const { fft } = registerControl('fft');
  * note("c3 e3 f3 g3").decay("<.1 .2 .3 .4>").sustain(0)
  *
  */
-export const { decay, dec } = registerControl('decay', 'dec');
+export const { decay, dec } = registerControl('decay', 'dec')
 /**
  * Amplitude envelope sustain level: The level which is reached after attack / decay, being sustained until the offset.
  *
@@ -583,7 +586,7 @@ export const { decay, dec } = registerControl('decay', 'dec');
  * note("c3 e3 f3 g3").decay(.2).sustain("<0 .1 .4 .6 1>")
  *
  */
-export const { sustain, sus } = registerControl('sustain', 'sus');
+export const { sustain, sus } = registerControl('sustain', 'sus')
 /**
  * Amplitude envelope release time: The time it takes after the offset to go from sustain level to zero.
  *
@@ -594,8 +597,8 @@ export const { sustain, sus } = registerControl('sustain', 'sus');
  * note("c3 e3 g3 c4").release("<0 .1 .4 .6 1>/2")
  *
  */
-export const { release, rel } = registerControl('release', 'rel');
-export const { hold } = registerControl('hold');
+export const { release, rel } = registerControl('release', 'rel')
+export const { hold } = registerControl('hold')
 // TODO: in tidal, it seems to be normalized
 /**
  * Sets the center frequency of the **b**and-**p**ass **f**ilter. When using mininotation, you
@@ -608,7 +611,7 @@ export const { hold } = registerControl('hold');
  * s("bd sd [~ bd] sd,hh*6").bpf("<1000 2000 4000 8000>")
  *
  */
-export const { bandf, bpf, bp } = registerControl(['bandf', 'bandq', 'bpenv'], 'bpf', 'bp');
+export const { bandf, bpf, bp } = registerControl(['bandf', 'bandq', 'bpenv'], 'bpf', 'bp')
 // TODO: in tidal, it seems to be normalized
 /**
  * Sets the **b**and-**p**ass **q**-factor (resonance).
@@ -622,7 +625,7 @@ export const { bandf, bpf, bp } = registerControl(['bandf', 'bandq', 'bpenv'], '
  */
 // currently an alias of 'bandq' https://codeberg.org/uzu/strudel/issues/496
 // ['bpq'],
-export const { bandq, bpq } = registerControl('bandq', 'bpq');
+export const { bandq, bpq } = registerControl('bandq', 'bpq')
 /**
  * A pattern of numbers from 0 to 1. Skips the beginning of each sample, e.g. `0.25` to cut off the first quarter from each sample.
  *
@@ -634,7 +637,7 @@ export const { bandq, bpq } = registerControl('bandq', 'bpq');
  * s("rave").begin("<0 .25 .5 .75>").fast(2)
  *
  */
-export const { begin } = registerControl('begin');
+export const { begin } = registerControl('begin')
 /**
  * The same as .begin, but cuts off the end off each sample.
  *
@@ -645,7 +648,7 @@ export const { begin } = registerControl('begin');
  * s("bd*2,oh*4").end("<.1 .2 .5 1>").fast(2)
  *
  */
-export const { end } = registerControl('end');
+export const { end } = registerControl('end')
 /**
  * Loops the sample.
  * Note that the tempo of the loop is not synced with the cycle tempo.
@@ -657,7 +660,7 @@ export const { end } = registerControl('end');
  * s("casio").loop(1)
  *
  */
-export const { loop } = registerControl('loop');
+export const { loop } = registerControl('loop')
 /**
  * Begin to loop at a specific point in the sample (inbetween `begin` and `end`).
  * Note that the loop point must be inbetween `begin` and `end`, and before `loopEnd`!
@@ -670,7 +673,7 @@ export const { loop } = registerControl('loop');
  * s("space").loop(1)
  * .loopBegin("<0 .125 .25>")._scope()
  */
-export const { loopBegin, loopb } = registerControl('loopBegin', 'loopb');
+export const { loopBegin, loopb } = registerControl('loopBegin', 'loopb')
 /**
  *
  * End the looping section at a specific point in the sample (inbetween `begin` and `end`).
@@ -683,7 +686,7 @@ export const { loopBegin, loopb } = registerControl('loopBegin', 'loopb');
  * s("space").loop(1)
  * .loopEnd("<1 .75 .5 .25>")._scope()
  */
-export const { loopEnd, loope } = registerControl('loopEnd', 'loope');
+export const { loopEnd, loope } = registerControl('loopEnd', 'loope')
 /**
  * Bit crusher effect.
  *
@@ -694,7 +697,7 @@ export const { loopEnd, loope } = registerControl('loopEnd', 'loope');
  *
  */
 // ['clhatdecay'],
-export const { crush } = registerControl('crush');
+export const { crush } = registerControl('crush')
 /**
  * Fake-resampling for lowering the sample rate. Caution: This effect seems to only work in chromium based browsers
  *
@@ -704,7 +707,7 @@ export const { crush } = registerControl('crush');
  * s("bd sd [~ bd] sd,hh*8").coarse("<1 4 8 16 32>")
  *
  */
-export const { coarse } = registerControl('coarse');
+export const { coarse } = registerControl('coarse')
 
 /**
  * Modulate the amplitude of a sound with a continuous waveform
@@ -716,7 +719,10 @@ export const { coarse } = registerControl('coarse');
  * note("d d d# d".fast(4)).s("supersaw").tremolo("<3 2 100> ").tremoloskew("<.5>")
  *
  */
-export const { tremolo } = registerControl(['tremolo', 'tremolodepth', 'tremoloskew', 'tremolophase'], 'trem');
+export const { tremolo } = registerControl(
+  ['tremolo', 'tremolodepth', 'tremoloskew', 'tremolophase'],
+  'trem'
+)
 
 /**
  * Modulate the amplitude of a sound with a continuous waveform
@@ -730,8 +736,8 @@ export const { tremolo } = registerControl(['tremolo', 'tremolodepth', 'tremolos
  */
 export const { tremolosync } = registerControl(
   ['tremolosync', 'tremolodepth', 'tremoloskew', 'tremolophase'],
-  'tremsync',
-);
+  'tremsync'
+)
 
 /**
  * Depth of amplitude modulation
@@ -743,7 +749,7 @@ export const { tremolosync } = registerControl(
  * note("a1 a1 a#1 a1".fast(4)).s("pulse").tremsync(4).tremolodepth("<1 2 .7>")
  *
  */
-export const { tremolodepth } = registerControl('tremolodepth', 'tremdepth');
+export const { tremolodepth } = registerControl('tremolodepth', 'tremdepth')
 /**
  * Alter the shape of the modulation waveform
  *
@@ -754,7 +760,7 @@ export const { tremolodepth } = registerControl('tremolodepth', 'tremdepth');
  * note("{f a c e}%16").s("sawtooth").tremsync(4).tremoloskew("<.5 0 1>")
  *
  */
-export const { tremoloskew } = registerControl('tremoloskew', 'tremskew');
+export const { tremoloskew } = registerControl('tremoloskew', 'tremskew')
 
 /**
  * Alter the phase of the modulation waveform
@@ -766,7 +772,7 @@ export const { tremoloskew } = registerControl('tremoloskew', 'tremskew');
  * note("{f a c e}%16").s("sawtooth").tremsync(4).tremolophase("<0 .25 .66>")
  *
  */
-export const { tremolophase } = registerControl('tremolophase', 'tremphase');
+export const { tremolophase } = registerControl('tremolophase', 'tremphase')
 
 /**
  * Shape of amplitude modulation
@@ -778,7 +784,7 @@ export const { tremolophase } = registerControl('tremolophase', 'tremphase');
  * note("{f g c d}%16").tremsync(4).tremoloshape("<sine tri square>").s("sawtooth")
  *
  */
-export const { tremoloshape } = registerControl('tremoloshape', 'tremshape');
+export const { tremoloshape } = registerControl('tremoloshape', 'tremshape')
 /**
  * Filter overdrive for supported filter types
  *
@@ -788,7 +794,7 @@ export const { tremoloshape } = registerControl('tremoloshape', 'tremshape');
  * note("{f g g c d a a#}%16".sub(17)).s("supersaw").lpenv(8).lpf(150).lpq(.8).ftype('ladder').drive("<.5 4>")
  *
  */
-export const { drive } = registerControl('drive');
+export const { drive } = registerControl('drive')
 
 /**
  * Modulate the amplitude of an orbit to create a "sidechain" like effect.
@@ -807,7 +813,7 @@ export const { drive } = registerControl('drive');
  * $: s("bd:4!4").beat("0,4,8,11,14",16).duckorbit("2:3").duckattack(0.2).duckdepth(1)
  *
  */
-export const { duck } = registerControl('duckorbit', 'duck');
+export const { duck } = registerControl('duckorbit', 'duck')
 
 /**
  * The amount of ducking applied to target orbit
@@ -825,7 +831,7 @@ export const { duck } = registerControl('duckorbit', 'duck');
  * $: s("bd:4!4").beat("0,4,8,11,14",16).duckorbit("2:3").duckattack(0.2).duckdepth("1:0.5")
  *
  */
-export const { duckdepth } = registerControl('duckdepth');
+export const { duckdepth } = registerControl('duckdepth')
 
 /**
  * The time required for the ducked signal(s) to reach their lowest volume.
@@ -853,7 +859,7 @@ export const { duckdepth } = registerControl('duckdepth');
  * ducker: s("bd*4").bank("tr909").duckorbit("4:7").duckonset("0.3:0.003").duckattack(0.25)
  *
  */
-export const { duckonset } = registerControl('duckonset', 'duckons');
+export const { duckonset } = registerControl('duckonset', 'duckons')
 
 /**
  * The time required for the ducked signal(s) to return to their normal volume.
@@ -874,7 +880,7 @@ export const { duckonset } = registerControl('duckonset', 'duckons');
  * ducker: s("bd:4!4").beat("0,4,8,11,14",16).duckorbit("2:5").duckattack("0.4:0.1")
  *
  */
-export const { duckattack } = registerControl('duckattack', 'duckatt');
+export const { duckattack } = registerControl('duckattack', 'duckatt')
 
 /**
  * Create byte beats with custom expressions
@@ -887,7 +893,7 @@ export const { duckattack } = registerControl('duckattack', 'duckatt');
  * s("bytebeat").bbexpr('t*(t>>15^t>>66)')
  *
  */
-export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr');
+export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr')
 
 /**
  * Create byte beats with custom expressions
@@ -900,7 +906,7 @@ export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpressio
  * note("c3!8".add("{0 0 12 0 7 5 3}%8")).s("bytebeat:5").bbst("<3 1>".mul(10000))._scope()
  *
  */
-export const { byteBeatStartTime, bbst } = registerControl('byteBeatStartTime', 'bbst');
+export const { byteBeatStartTime, bbst } = registerControl('byteBeatStartTime', 'bbst')
 
 /**
  * Allows you to set the output channels on the interface
@@ -913,7 +919,7 @@ export const { byteBeatStartTime, bbst } = registerControl('byteBeatStartTime', 
  * note("e a d b g").channels("3:4")
  *
  */
-export const { channels, ch } = registerControl('channels', 'ch');
+export const { channels, ch } = registerControl('channels', 'ch')
 
 /**
  * Controls the pulsewidth of the pulse oscillator
@@ -925,7 +931,7 @@ export const { channels, ch } = registerControl('channels', 'ch');
  * @example
  * n(run(8)).scale("D:pentatonic").s("pulse").pw("0 .75 .5 1")
  */
-export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep']);
+export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep'])
 
 /**
  * Controls the lfo rate for the pulsewidth of the pulse oscillator
@@ -937,7 +943,7 @@ export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep']);
 
  *
  */
-export const { pwrate } = registerControl('pwrate');
+export const { pwrate } = registerControl('pwrate')
 
 /**
  * Controls the lfo sweep for the pulsewidth of the pulse oscillator
@@ -948,7 +954,7 @@ export const { pwrate } = registerControl('pwrate');
  * n(run(8)).scale("D:pentatonic").s("pulse").pw("0.5").pwrate("<5 .1 25>").pwsweep("<0.3 .8>")
  *
  */
-export const { pwsweep } = registerControl('pwsweep');
+export const { pwsweep } = registerControl('pwsweep')
 
 /**
  * Phaser audio effect that approximates popular guitar pedals.
@@ -964,8 +970,8 @@ export const { pwsweep } = registerControl('pwsweep');
 export const { phaserrate, ph, phaser } = registerControl(
   ['phaserrate', 'phaserdepth', 'phasercenter', 'phasersweep'],
   'ph',
-  'phaser',
-);
+  'phaser'
+)
 
 /**
  * The frequency sweep range of the lfo for the phaser effect. Defaults to 2000
@@ -978,7 +984,7 @@ export const { phaserrate, ph, phaser } = registerControl(
  * .phaser(2).phasersweep("<800 2000 4000>")
  *
  */
-export const { phasersweep, phs } = registerControl('phasersweep', 'phs');
+export const { phasersweep, phs } = registerControl('phasersweep', 'phs')
 
 /**
  * The center frequency of the phaser in HZ. Defaults to 1000
@@ -992,7 +998,7 @@ export const { phasersweep, phs } = registerControl('phasersweep', 'phs');
  *
  */
 
-export const { phasercenter, phc } = registerControl('phasercenter', 'phc');
+export const { phasercenter, phc } = registerControl('phasercenter', 'phc')
 
 /**
  * The amount the signal is affected by the phaser effect. Defaults to 0.75
@@ -1006,7 +1012,7 @@ export const { phasercenter, phc } = registerControl('phasercenter', 'phc');
  *
  */
 // also a superdirt control
-export const { phaserdepth, phd, phasdp } = registerControl('phaserdepth', 'phd', 'phasdp');
+export const { phaserdepth, phd, phasdp } = registerControl('phaserdepth', 'phd', 'phasdp')
 
 /**
  * Choose the channel the pattern is sent to in superdirt
@@ -1015,7 +1021,7 @@ export const { phaserdepth, phd, phasdp } = registerControl('phaserdepth', 'phd'
  * @param {number | Pattern} channel channel number
  *
  */
-export const { channel } = registerControl('channel');
+export const { channel } = registerControl('channel')
 /**
  * In the style of classic drum-machines, `cut` will stop a playing sample as soon as another samples with in same cutgroup is to be played. An example would be an open hi-hat followed by a closed one, essentially muting the open.
  *
@@ -1025,7 +1031,7 @@ export const { channel } = registerControl('channel');
  * s("[oh hh]*4").cut(1)
  *
  */
-export const { cut } = registerControl('cut');
+export const { cut } = registerControl('cut')
 /**
  * Applies the cutoff frequency of the **l**ow-**p**ass **f**ilter.
  *
@@ -1040,7 +1046,12 @@ export const { cut } = registerControl('cut');
  * s("bd*16").lpf("1000:0 1000:10 1000:20 1000:30")
  *
  */
-export const { cutoff, ctf, lpf, lp } = registerControl(['cutoff', 'resonance', 'lpenv'], 'ctf', 'lpf', 'lp');
+export const { cutoff, ctf, lpf, lp } = registerControl(
+  ['cutoff', 'resonance', 'lpenv'],
+  'ctf',
+  'lpf',
+  'lp'
+)
 
 /**
  * Sets the lowpass filter envelope modulation depth.
@@ -1054,7 +1065,7 @@ export const { cutoff, ctf, lpf, lp } = registerControl(['cutoff', 'resonance', 
  * .lpa(.5)
  * .lpenv("<4 2 1 0 -1 -2 -4>/4")
  */
-export const { lpenv, lpe } = registerControl('lpenv', 'lpe');
+export const { lpenv, lpe } = registerControl('lpenv', 'lpe')
 /**
  * Sets the highpass filter envelope modulation depth.
  * @name hpenv
@@ -1067,7 +1078,7 @@ export const { lpenv, lpe } = registerControl('lpenv', 'lpe');
  * .hpa(.5)
  * .hpenv("<4 2 1 0 -1 -2 -4>/4")
  */
-export const { hpenv, hpe } = registerControl('hpenv', 'hpe');
+export const { hpenv, hpe } = registerControl('hpenv', 'hpe')
 /**
  * Sets the bandpass filter envelope modulation depth.
  * @name bpenv
@@ -1080,7 +1091,7 @@ export const { hpenv, hpe } = registerControl('hpenv', 'hpe');
  * .bpa(.5)
  * .bpenv("<4 2 1 0 -1 -2 -4>/4")
  */
-export const { bpenv, bpe } = registerControl('bpenv', 'bpe');
+export const { bpenv, bpe } = registerControl('bpenv', 'bpe')
 /**
  * Sets the attack duration for the lowpass filter envelope.
  * @name lpattack
@@ -1093,7 +1104,7 @@ export const { bpenv, bpe } = registerControl('bpenv', 'bpe');
  * .lpa("<.5 .25 .1 .01>/4")
  * .lpenv(4)
  */
-export const { lpattack, lpa } = registerControl('lpattack', 'lpa');
+export const { lpattack, lpa } = registerControl('lpattack', 'lpa')
 /**
  * Sets the attack duration for the highpass filter envelope.
  * @name hpattack
@@ -1106,7 +1117,7 @@ export const { lpattack, lpa } = registerControl('lpattack', 'lpa');
  * .hpa("<.5 .25 .1 .01>/4")
  * .hpenv(4)
  */
-export const { hpattack, hpa } = registerControl('hpattack', 'hpa');
+export const { hpattack, hpa } = registerControl('hpattack', 'hpa')
 /**
  * Sets the attack duration for the bandpass filter envelope.
  * @name bpattack
@@ -1119,7 +1130,7 @@ export const { hpattack, hpa } = registerControl('hpattack', 'hpa');
  * .bpa("<.5 .25 .1 .01>/4")
  * .bpenv(4)
  */
-export const { bpattack, bpa } = registerControl('bpattack', 'bpa');
+export const { bpattack, bpa } = registerControl('bpattack', 'bpa')
 /**
  * Sets the decay duration for the lowpass filter envelope.
  * @name lpdecay
@@ -1132,7 +1143,7 @@ export const { bpattack, bpa } = registerControl('bpattack', 'bpa');
  * .lpd("<.5 .25 .1 0>/4")
  * .lpenv(4)
  */
-export const { lpdecay, lpd } = registerControl('lpdecay', 'lpd');
+export const { lpdecay, lpd } = registerControl('lpdecay', 'lpd')
 /**
  * Sets the decay duration for the highpass filter envelope.
  * @name hpdecay
@@ -1146,7 +1157,7 @@ export const { lpdecay, lpd } = registerControl('lpdecay', 'lpd');
  * .hps(0.2)
  * .hpenv(4)
  */
-export const { hpdecay, hpd } = registerControl('hpdecay', 'hpd');
+export const { hpdecay, hpd } = registerControl('hpdecay', 'hpd')
 /**
  * Sets the decay duration for the bandpass filter envelope.
  * @name bpdecay
@@ -1160,7 +1171,7 @@ export const { hpdecay, hpd } = registerControl('hpdecay', 'hpd');
  * .bps(0.2)
  * .bpenv(4)
  */
-export const { bpdecay, bpd } = registerControl('bpdecay', 'bpd');
+export const { bpdecay, bpd } = registerControl('bpdecay', 'bpd')
 /**
  * Sets the sustain amplitude for the lowpass filter envelope.
  * @name lpsustain
@@ -1174,7 +1185,7 @@ export const { bpdecay, bpd } = registerControl('bpdecay', 'bpd');
  * .lps("<0 .25 .5 1>/4")
  * .lpenv(4)
  */
-export const { lpsustain, lps } = registerControl('lpsustain', 'lps');
+export const { lpsustain, lps } = registerControl('lpsustain', 'lps')
 /**
  * Sets the sustain amplitude for the highpass filter envelope.
  * @name hpsustain
@@ -1188,7 +1199,7 @@ export const { lpsustain, lps } = registerControl('lpsustain', 'lps');
  * .hps("<0 .25 .5 1>/4")
  * .hpenv(4)
  */
-export const { hpsustain, hps } = registerControl('hpsustain', 'hps');
+export const { hpsustain, hps } = registerControl('hpsustain', 'hps')
 /**
  * Sets the sustain amplitude for the bandpass filter envelope.
  * @name bpsustain
@@ -1202,7 +1213,7 @@ export const { hpsustain, hps } = registerControl('hpsustain', 'hps');
  * .bps("<0 .25 .5 1>/4")
  * .bpenv(4)
  */
-export const { bpsustain, bps } = registerControl('bpsustain', 'bps');
+export const { bpsustain, bps } = registerControl('bpsustain', 'bps')
 /**
  * Sets the release time for the lowpass filter envelope.
  * @name lprelease
@@ -1217,7 +1228,7 @@ export const { bpsustain, bps } = registerControl('bpsustain', 'bps');
  * .lpr("<.5 .25 .1 0>/4")
  * .release(.5)
  */
-export const { lprelease, lpr } = registerControl('lprelease', 'lpr');
+export const { lprelease, lpr } = registerControl('lprelease', 'lpr')
 /**
  * Sets the release time for the highpass filter envelope.
  * @name hprelease
@@ -1232,7 +1243,7 @@ export const { lprelease, lpr } = registerControl('lprelease', 'lpr');
  * .hpr("<.5 .25 .1 0>/4")
  * .release(.5)
  */
-export const { hprelease, hpr } = registerControl('hprelease', 'hpr');
+export const { hprelease, hpr } = registerControl('hprelease', 'hpr')
 /**
  * Sets the release time for the bandpass filter envelope.
  * @name bprelease
@@ -1247,7 +1258,7 @@ export const { hprelease, hpr } = registerControl('hprelease', 'hpr');
  * .bpr("<.5 .25 .1 0>/4")
  * .release(.5)
  */
-export const { bprelease, bpr } = registerControl('bprelease', 'bpr');
+export const { bprelease, bpr } = registerControl('bprelease', 'bpr')
 /**
  * Sets the filter type. The ladder filter is more aggressive. More types might be added in the future.
  * @name ftype
@@ -1261,7 +1272,7 @@ export const { bprelease, bpr } = registerControl('bprelease', 'bpr');
  * .lpenv(3).lpq(1)
  * .ftype("<ladder 12db 24db>")
  */
-export const { ftype } = registerControl('ftype');
+export const { ftype } = registerControl('ftype')
 
 /**
  * controls the center of the filter envelope. 0 is unipolar positive, .5 is bipolar, 1 is unipolar negative
@@ -1271,7 +1282,7 @@ export const { ftype } = registerControl('ftype');
  * note("{f g g c d a a#}%8").s("sawtooth").lpf("{1000}%2")
  * .lpenv(8).fanchor("<0 .5 1>")
  */
-export const { fanchor } = registerControl('fanchor');
+export const { fanchor } = registerControl('fanchor')
 /**
  * Applies the cutoff frequency of the **h**igh-**p**ass **f**ilter.
  *
@@ -1304,7 +1315,7 @@ export const { fanchor } = registerControl('fanchor');
  * .vib("<.5 1 2 4 8 16>:12")
  * ._scope()
  */
-export const { vib, vibrato, v } = registerControl(['vib', 'vibmod'], 'vibrato', 'v');
+export const { vib, vibrato, v } = registerControl(['vib', 'vibmod'], 'vibrato', 'v')
 /**
  * Adds pink noise to the mix
  *
@@ -1313,7 +1324,7 @@ export const { vib, vibrato, v } = registerControl(['vib', 'vibmod'], 'vibrato',
  * @example
  * sound("<white pink brown>/2")
  */
-export const { noise } = registerControl('noise');
+export const { noise } = registerControl('noise')
 /**
  * Sets the vibrato depth in semitones. Only has an effect if `vibrato` | `vib` | `v` is is also set
  *
@@ -1330,8 +1341,8 @@ export const { noise } = registerControl('noise');
  * .vibmod("<.25 .5 1 2 12>:8")
  * ._scope()
  */
-export const { vibmod, vmod } = registerControl(['vibmod', 'vib'], 'vmod');
-export const { hcutoff, hpf, hp } = registerControl(['hcutoff', 'hresonance', 'hpenv'], 'hpf', 'hp');
+export const { vibmod, vmod } = registerControl(['vibmod', 'vib'], 'vmod')
+export const { hcutoff, hpf, hp } = registerControl(['hcutoff', 'hresonance', 'hpenv'], 'hpf', 'hp')
 /**
  * Controls the **h**igh-**p**ass **q**-value.
  *
@@ -1342,7 +1353,7 @@ export const { hcutoff, hpf, hp } = registerControl(['hcutoff', 'hresonance', 'h
  * s("bd sd [~ bd] sd,hh*8").hpf(2000).hpq("<0 10 20 30>")
  *
  */
-export const { hresonance, hpq } = registerControl('hresonance', 'hpq');
+export const { hresonance, hpq } = registerControl('hresonance', 'hpq')
 /**
  * Controls the **l**ow-**p**ass **q**-value.
  *
@@ -1354,7 +1365,7 @@ export const { hresonance, hpq } = registerControl('hresonance', 'hpq');
  *
  */
 // currently an alias of 'resonance' https://codeberg.org/uzu/strudel/issues/496
-export const { resonance, lpq } = registerControl('resonance', 'lpq');
+export const { resonance, lpq } = registerControl('resonance', 'lpq')
 /**
  * DJ filter, below 0.5 is low pass filter, above is high pass filter.
  *
@@ -1364,7 +1375,7 @@ export const { resonance, lpq } = registerControl('resonance', 'lpq');
  * n(irand(16).seg(8)).scale("d:phrygian").s("supersaw").djf("<.5 .3 .2 .75>")
  *
  */
-export const { djf } = registerControl('djf');
+export const { djf } = registerControl('djf')
 // ['cutoffegint'],
 // TODO: does not seem to work
 /**
@@ -1382,7 +1393,7 @@ export const { djf } = registerControl('djf');
  * s("bd bd").delay("0.65:0.25:0.9 0.65:0.125:0.7")
  *
  */
-export const { delay } = registerControl(['delay', 'delaytime', 'delayfeedback']);
+export const { delay } = registerControl(['delay', 'delaytime', 'delayfeedback'])
 /**
  * Sets the level of the signal that is fed back into the delay.
  * Caution: Values >= 1 will result in a signal that gets louder and louder! Don't do it
@@ -1394,7 +1405,7 @@ export const { delay } = registerControl(['delay', 'delaytime', 'delayfeedback']
  * s("bd").delay(.25).delayfeedback("<.25 .5 .75 1>")
  *
  */
-export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 'delayfb', 'dfb');
+export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 'delayfb', 'dfb')
 
 /**
  * Sets the level of the signal that is fed back into the delay.
@@ -1407,7 +1418,7 @@ export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 
  * s("bd").delay(.25).delayfeedback("<.25 .5 .75 1>")
  *
  */
-export const { delayspeed } = registerControl('delayspeed');
+export const { delayspeed } = registerControl('delayspeed')
 /**
  * Sets the time of the delay effect.
  *
@@ -1418,7 +1429,7 @@ export const { delayspeed } = registerControl('delayspeed');
  * note("d d a# a".fast(2)).s("sawtooth").delay(.8).delaytime(1/2).delayspeed("<2 .5 -1 -2>")
  *
  */
-export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 'dt');
+export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 'dt')
 
 /**
  * Sets the time of the delay effect in cycles.
@@ -1430,7 +1441,7 @@ export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 
  * s("bd bd").delay(.25).delaysync("<1 2 3 5>".div(8))
  *
  */
-export const { delaysync } = registerControl('delaysync');
+export const { delaysync } = registerControl('delaysync')
 
 /**
  * Specifies whether delaytime is calculated relative to cps.
@@ -1444,7 +1455,7 @@ export const { delaysync } = registerControl('delaysync');
  *
  */
 
-export const { lock } = registerControl('lock');
+export const { lock } = registerControl('lock')
 /**
  * Set detune for stacked voices of supported oscillators
  *
@@ -1455,7 +1466,7 @@ export const { lock } = registerControl('lock');
  * note("d f a a# a d3").fast(2).s("supersaw").detune("<.1 .2 .5 24.1>")
  *
  */
-export const { detune, det } = registerControl('detune', 'det');
+export const { detune, det } = registerControl('detune', 'det')
 /**
  * Set number of stacked voices for supported oscillators
  *
@@ -1465,7 +1476,7 @@ export const { detune, det } = registerControl('detune', 'det');
  * note("d f a a# a d3").fast(2).s("supersaw").unison("<1 2 7>")
  *
  */
-export const { unison } = registerControl('unison');
+export const { unison } = registerControl('unison')
 
 /**
  * Set the stereo pan spread for supported oscillators
@@ -1476,7 +1487,7 @@ export const { unison } = registerControl('unison');
  * note("d f a a# a d3").fast(2).s("supersaw").spread("<0 .3 1>")
  *
  */
-export const { spread } = registerControl('spread');
+export const { spread } = registerControl('spread')
 /**
  * Set dryness of reverb. See `room` and `size` for more information about reverb.
  *
@@ -1487,7 +1498,7 @@ export const { spread } = registerControl('spread');
  * @superdirtOnly
  *
  */
-export const { dry } = registerControl('dry');
+export const { dry } = registerControl('dry')
 // TODO: does not seem to do anything
 /*
  * Used when using `begin`/`end` or `chop`/`striate` and friends, to change the fade out time of the 'grain' envelope.
@@ -1499,9 +1510,9 @@ export const { dry } = registerControl('dry');
  * s("oh*4").end(.1).fadeTime("<0 .2 .4 .8>").osc()
  *
  */
-export const { fadeTime, fadeOutTime } = registerControl('fadeTime', 'fadeOutTime');
+export const { fadeTime, fadeOutTime } = registerControl('fadeTime', 'fadeOutTime')
 // TODO: see above
-export const { fadeInTime } = registerControl('fadeInTime');
+export const { fadeInTime } = registerControl('fadeInTime')
 /**
  * Set frequency of sound.
  *
@@ -1513,7 +1524,7 @@ export const { fadeInTime } = registerControl('fadeInTime');
  * freq("110".mul.out(".5 1.5 .6 [2 3]")).s("superzow").osc()
  *
  */
-export const { freq } = registerControl('freq');
+export const { freq } = registerControl('freq')
 // pitch envelope
 /**
  * Attack time of pitch envelope.
@@ -1525,7 +1536,7 @@ export const { freq } = registerControl('freq');
  * note("c eb g bb").pattack("0 .1 .25 .5").slow(2)
  *
  */
-export const { pattack, patt } = registerControl('pattack', 'patt');
+export const { pattack, patt } = registerControl('pattack', 'patt')
 /**
  * Decay time of pitch envelope.
  *
@@ -1536,9 +1547,9 @@ export const { pattack, patt } = registerControl('pattack', 'patt');
  * note("<c eb g bb>").pdecay("<0 .1 .25 .5>")
  *
  */
-export const { pdecay, pdec } = registerControl('pdecay', 'pdec');
+export const { pdecay, pdec } = registerControl('pdecay', 'pdec')
 // TODO: how to use psustain?!
-export const { psustain, psus } = registerControl('psustain', 'psus');
+export const { psustain, psus } = registerControl('psustain', 'psus')
 /**
  * Release time of pitch envelope
  *
@@ -1551,7 +1562,7 @@ export const { psustain, psus } = registerControl('psustain', 'psus');
  * .prelease("<0 .1 .25 .5>")
  *
  */
-export const { prelease, prel } = registerControl('prelease', 'prel');
+export const { prelease, prel } = registerControl('prelease', 'prel')
 /**
  * Amount of pitch envelope. Negative values will flip the envelope.
  * If you don't set other pitch envelope controls, `pattack:.2` will be the default.
@@ -1563,7 +1574,7 @@ export const { prelease, prel } = registerControl('prelease', 'prel');
  * .penv("<12 7 1 .5 0 -1 -7 -12>")
  *
  */
-export const { penv } = registerControl('penv');
+export const { penv } = registerControl('penv')
 /**
  * Curve of envelope. Defaults to linear. exponential is good for kicks
  *
@@ -1576,7 +1587,7 @@ export const { penv } = registerControl('penv');
  * .pcurve("<0 1>")
  *
  */
-export const { pcurve } = registerControl('pcurve');
+export const { pcurve } = registerControl('pcurve')
 /**
  * Sets the range anchor of the envelope:
  * - anchor 0: range = [note, note + penv]
@@ -1589,9 +1600,9 @@ export const { pcurve } = registerControl('pcurve');
  * note("c c4").penv(12).panchor("<0 .5 1 .5>")
  *
  */
-export const { panchor } = registerControl('panchor');
+export const { panchor } = registerControl('panchor')
 // TODO: https://tidalcycles.org/docs/configuration/MIDIOSC/control-voltage/#gate
-export const { gate, gat } = registerControl('gate', 'gat');
+export const { gate, gat } = registerControl('gate', 'gat')
 // ['hatgrain'],
 // ['lagogo'],
 // ['lclap'],
@@ -1611,7 +1622,7 @@ export const { gate, gat } = registerControl('gate', 'gat');
  * @superdirtOnly
  *
  */
-export const { leslie } = registerControl('leslie');
+export const { leslie } = registerControl('leslie')
 /**
  * Rate of modulation / rotation for leslie effect
  *
@@ -1623,7 +1634,7 @@ export const { leslie } = registerControl('leslie');
  *
  */
 // TODO: the rate seems to "lag" (in the example, 1 will be fast)
-export const { lrate } = registerControl('lrate');
+export const { lrate } = registerControl('lrate')
 /**
  * Physical size of the cabinet in meters. Be careful, it might be slightly larger than your computer. Affects the Doppler amount (pitch warble)
  *
@@ -1634,15 +1645,15 @@ export const { lrate } = registerControl('lrate');
  * @superdirtOnly
  *
  */
-export const { lsize } = registerControl('lsize');
+export const { lsize } = registerControl('lsize')
 /**
  * Sets the displayed text for an event on the pianoroll
  *
  * @name label
  * @param {string} label text to display
  */
-export const { activeLabel } = registerControl('activeLabel');
-export const { label } = registerControl(['label', 'activeLabel']);
+export const { activeLabel } = registerControl('activeLabel')
+export const { label } = registerControl(['label', 'activeLabel'])
 // ['lfo'],
 // ['lfocutoffint'],
 // ['lfodelay'],
@@ -1656,20 +1667,20 @@ export const { label } = registerControl(['label', 'activeLabel']);
 // ['lophat'],
 // ['lsnare'],
 // TODO: what is this? not found in tidal doc
-export const { degree } = registerControl('degree');
+export const { degree } = registerControl('degree')
 // TODO: what is this? not found in tidal doc
-export const { mtranspose } = registerControl('mtranspose');
+export const { mtranspose } = registerControl('mtranspose')
 // TODO: what is this? not found in tidal doc
-export const { ctranspose } = registerControl('ctranspose');
+export const { ctranspose } = registerControl('ctranspose')
 // TODO: what is this? not found in tidal doc
-export const { harmonic } = registerControl('harmonic');
+export const { harmonic } = registerControl('harmonic')
 // TODO: what is this? not found in tidal doc
-export const { stepsPerOctave } = registerControl('stepsPerOctave');
+export const { stepsPerOctave } = registerControl('stepsPerOctave')
 // TODO: what is this? not found in tidal doc
-export const { octaveR } = registerControl('octaveR');
+export const { octaveR } = registerControl('octaveR')
 // TODO: why is this needed? what's the difference to late / early? Answer: it's in seconds, and delays the message at
 // OSC time (so can't be negative, at least not beyond the latency value)
-export const { nudge } = registerControl('nudge');
+export const { nudge } = registerControl('nudge')
 // TODO: the following doc is just a guess, it's not documented in tidal doc.
 /**
  * Sets the default octave of a synth.
@@ -1680,7 +1691,7 @@ export const { nudge } = registerControl('nudge');
  * n("0,4,7").s('supersquare').octave("<3 4 5 6>").osc()
  * @superDirtOnly
  */
-export const { octave } = registerControl('octave');
+export const { octave } = registerControl('octave')
 
 // ['ophatdecay'],
 // TODO: example
@@ -1695,11 +1706,11 @@ export const { octave } = registerControl('octave');
  *   s("~ sd ~ sd").delay(.5).delaytime(.125).orbit(2)
  * )
  */
-export const { orbit } = registerControl('orbit');
+export const { orbit } = registerControl('orbit')
 // TODO: what is this? not found in tidal doc Answer: gain is limited to maximum of 2. This allows you to go over that
-export const { overgain } = registerControl('overgain');
+export const { overgain } = registerControl('overgain')
 // TODO: what is this? not found in tidal doc. Similar to above, but limited to 1
-export const { overshape } = registerControl('overshape');
+export const { overshape } = registerControl('overshape')
 /**
  * Sets position in stereo.
  *
@@ -1711,7 +1722,7 @@ export const { overshape } = registerControl('overshape');
  * s("bd rim sd rim bd ~ cp rim").pan(sine.slow(2))
  *
  */
-export const { pan } = registerControl('pan');
+export const { pan } = registerControl('pan')
 // TODO: this has no effect (see example)
 /*
  * Controls how much multichannel output is fanned out
@@ -1722,7 +1733,7 @@ export const { pan } = registerControl('pan');
  * s("[bd hh]*2").pan("<.5 1 .5 0>").panspan("<0 .5 1>").osc()
  *
  */
-export const { panspan } = registerControl('panspan');
+export const { panspan } = registerControl('panspan')
 // TODO: this has no effect (see example)
 /*
  * Controls how much multichannel output is spread
@@ -1733,35 +1744,35 @@ export const { panspan } = registerControl('panspan');
  * s("[bd hh]*2").pan("<.5 1 .5 0>").pansplay("<0 .5 1>").osc()
  *
  */
-export const { pansplay } = registerControl('pansplay');
-export const { panwidth } = registerControl('panwidth');
-export const { panorient } = registerControl('panorient');
+export const { pansplay } = registerControl('pansplay')
+export const { panwidth } = registerControl('panwidth')
+export const { panorient } = registerControl('panorient')
 // ['pitch1'],
 // ['pitch2'],
 // ['pitch3'],
 // ['portamento'],
 // TODO: LFO rate see https://tidalcycles.org/docs/patternlib/tutorials/synthesizers/#supersquare
-export const { rate } = registerControl('rate');
+export const { rate } = registerControl('rate')
 // TODO: slide param for certain synths
-export const { slide } = registerControl('slide');
+export const { slide } = registerControl('slide')
 // TODO: detune? https://tidalcycles.org/docs/patternlib/tutorials/synthesizers/#supersquare
-export const { semitone } = registerControl('semitone');
+export const { semitone } = registerControl('semitone')
 
 // TODO: synth param
-export const { voice } = registerControl('voice');
+export const { voice } = registerControl('voice')
 // voicings // https://codeberg.org/uzu/strudel/issues/506
 // chord to voice, like C Eb Fm7 G7. the symbols can be defined via addVoicings
-export const { chord } = registerControl('chord');
+export const { chord } = registerControl('chord')
 // which dictionary to use for the voicings
-export const { dictionary, dict } = registerControl('dictionary', 'dict');
+export const { dictionary, dict } = registerControl('dictionary', 'dict')
 // the top note to align the voicing to, defaults to c5
-export const { anchor } = registerControl('anchor');
+export const { anchor } = registerControl('anchor')
 // how the voicing is offset from the anchored position
-export const { offset } = registerControl('offset');
+export const { offset } = registerControl('offset')
 // how many octaves are voicing steps spread apart, defaults to 1
-export const { octaves } = registerControl('octaves');
+export const { octaves } = registerControl('octaves')
 // below = anchor note will be removed from the voicing, useful for melody harmonization
-export const { mode } = registerControl(['mode', 'anchor']);
+export const { mode } = registerControl(['mode', 'anchor'])
 
 /**
  * Sets the level of reverb.
@@ -1776,7 +1787,7 @@ export const { mode } = registerControl(['mode', 'anchor']);
  * s("bd sd [~ bd] sd").room("<0.9:1 0.9:4>")
  *
  */
-export const { room } = registerControl(['room', 'size']);
+export const { room } = registerControl(['room', 'size'])
 /**
  * Reverb lowpass starting frequency (in hertz).
  * When this property is changed, the reverb will be recaculated, so only change this sparsely..
@@ -1789,7 +1800,7 @@ export const { room } = registerControl(['room', 'size']);
  * @example
  * s("bd sd [~ bd] sd").room(0.5).rlp(5000)
  */
-export const { roomlp, rlp } = registerControl('roomlp', 'rlp');
+export const { roomlp, rlp } = registerControl('roomlp', 'rlp')
 /**
  * Reverb lowpass frequency at -60dB (in hertz).
  * When this property is changed, the reverb will be recaculated, so only change this sparsely..
@@ -1803,7 +1814,7 @@ export const { roomlp, rlp } = registerControl('roomlp', 'rlp');
  * s("bd sd [~ bd] sd").room(0.5).rlp(5000).rdim(400)
  *
  */
-export const { roomdim, rdim } = registerControl('roomdim', 'rdim');
+export const { roomdim, rdim } = registerControl('roomdim', 'rdim')
 /**
  * Reverb fade time (in seconds).
  * When this property is changed, the reverb will be recaculated, so only change this sparsely..
@@ -1817,7 +1828,7 @@ export const { roomdim, rdim } = registerControl('roomdim', 'rdim');
  * s("bd sd [~ bd] sd").room(0.5).rlp(5000).rfade(4)
  *
  */
-export const { roomfade, rfade } = registerControl('roomfade', 'rfade');
+export const { roomfade, rfade } = registerControl('roomfade', 'rfade')
 /**
  * Sets the sample to use as an impulse response for the reverb.
  * @name iresponse
@@ -1827,7 +1838,7 @@ export const { roomfade, rfade } = registerControl('roomfade', 'rfade');
  * s("bd sd [~ bd] sd").room(.8).ir("<shaker_large:0 shaker_large:2>")
  *
  */
-export const { ir, iresponse } = registerControl(['ir', 'i'], 'iresponse');
+export const { ir, iresponse } = registerControl(['ir', 'i'], 'iresponse')
 
 /**
  * Sets speed of the sample for the impulse response.
@@ -1838,7 +1849,7 @@ export const { ir, iresponse } = registerControl(['ir', 'i'], 'iresponse');
  * $: s("brk/2").fit().scrub(irand(16).div(16).seg(8)).ir("swpad:4").room(.2).irspeed("<2 1 .5>/2").irbegin(.5).roomsize(.5)
  *
  */
-export const { irspeed } = registerControl('irspeed');
+export const { irspeed } = registerControl('irspeed')
 
 /**
  * Sets the beginning of the IR response sample
@@ -1850,7 +1861,7 @@ export const { irspeed } = registerControl('irspeed');
  * $: s("brk/2").fit().scrub(irand(16).div(16).seg(8)).ir("swpad:4").room(.65).irspeed("-2").irbegin("<0 .5 .75>/2").roomsize(.6)
  *
  */
-export const { irbegin } = registerControl('irbegin');
+export const { irbegin } = registerControl('irbegin')
 /**
  * Sets the room size of the reverb, see `room`.
  * When this property is changed, the reverb will be recaculated, so only change this sparsely..
@@ -1867,7 +1878,7 @@ export const { irbegin } = registerControl('irbegin');
 // TODO: find out why :
 // s("bd sd [~ bd] sd").room(.8).roomsize("<0 .2 .4 .6 .8 [1,0]>").osc()
 // .. does not work. Is it because room is only one effect?
-export const { roomsize, size, sz, rsize } = registerControl('roomsize', 'size', 'sz', 'rsize');
+export const { roomsize, size, sz, rsize } = registerControl('roomsize', 'size', 'sz', 'rsize')
 // ['sagogo'],
 // ['sclap'],
 // ['sclaves'],
@@ -1884,7 +1895,7 @@ export const { roomsize, size, sz, rsize } = registerControl('roomsize', 'size',
  * s("bd sd [~ bd] sd,hh*8").shape("<0 .2 .4 .6 .8>")
  *
  */
-export const { shape } = registerControl(['shape', 'shapevol']);
+export const { shape } = registerControl(['shape', 'shapevol'])
 /**
  * Wave shaping distortion. CAUTION: it can get loud.
  * Second option in optional array syntax (ex: ".9:.5") applies a postgain to the output. Third option sets the waveshaping type.
@@ -1903,7 +1914,7 @@ export const { shape } = registerControl(['shape', 'shapevol']);
  * s("bd:4*4").bank("tr808").distort("3:0.5:diode")
  *
  */
-export const { distort, dist } = registerControl(['distort', 'distortvol', 'distorttype'], 'dist');
+export const { distort, dist } = registerControl(['distort', 'distortvol', 'distorttype'], 'dist')
 
 /**
  * Postgain for waveshaping distortion.
@@ -1914,7 +1925,7 @@ export const { distort, dist } = registerControl(['distort', 'distortvol', 'dist
  * @example
  * s("bd*4").bank("tr909").distort(2).distortvol(0.8)
  */
-export const { distortvol } = registerControl('distortvol', 'distvol');
+export const { distortvol } = registerControl('distortvol', 'distvol')
 
 /**
  * Type of waveshaping distortion to apply.
@@ -1931,7 +1942,7 @@ export const { distortvol } = registerControl('distortvol', 'distvol');
  *   .distort(rand.range(1, 8))
  *   .distorttype("<fold chebyshev scurve diode asym sinefold>")
  */
-export const { distorttype } = registerControl('distorttype', 'disttype');
+export const { distorttype } = registerControl('distorttype', 'disttype')
 
 /**
  * Dynamics Compressor. The params are `compressor("threshold:ratio:knee:attack:release")`
@@ -1949,11 +1960,11 @@ export const { compressor } = registerControl([
   'compressorKnee',
   'compressorAttack',
   'compressorRelease',
-]);
-export const { compressorKnee } = registerControl('compressorKnee');
-export const { compressorRatio } = registerControl('compressorRatio');
-export const { compressorAttack } = registerControl('compressorAttack');
-export const { compressorRelease } = registerControl('compressorRelease');
+])
+export const { compressorKnee } = registerControl('compressorKnee')
+export const { compressorRatio } = registerControl('compressorRatio')
+export const { compressorAttack } = registerControl('compressorAttack')
+export const { compressorRelease } = registerControl('compressorRelease')
 /**
  * Changes the speed of sample playback, i.e. a cheap way of changing pitch.
  *
@@ -1965,7 +1976,7 @@ export const { compressorRelease } = registerControl('compressorRelease');
  * speed("1 1.5*2 [2 1.1]").s("piano").clip(1)
  *
  */
-export const { speed } = registerControl('speed');
+export const { speed } = registerControl('speed')
 
 /**
  * Changes the speed of sample playback, i.e. a cheap way of changing pitch.
@@ -1976,7 +1987,7 @@ export const { speed } = registerControl('speed');
  * s("gm_flute").stretch("1 2 .5")
  *
  */
-export const { stretch } = registerControl('stretch');
+export const { stretch } = registerControl('stretch')
 /**
  * Used in conjunction with `speed`, accepts values of "r" (rate, default behavior), "c" (cycles), or "s" (seconds). Using `unit "c"` means `speed` will be interpreted in units of cycles, e.g. `speed "1"` means samples will be stretched to fill a cycle. Using `unit "s"` means the playback speed will be adjusted so that the duration is the number of seconds specified by `speed`.
  *
@@ -1988,7 +1999,7 @@ export const { stretch } = registerControl('stretch');
  *
  */
 
-export const { unit } = registerControl('unit');
+export const { unit } = registerControl('unit')
 /**
  * Made by Calum Gunn. Reminiscent of some weird mixture of filter, ring-modulator and pitch-shifter. The SuperCollider manual defines Squiz as:
  *
@@ -2001,7 +2012,7 @@ export const { unit } = registerControl('unit');
  * @superdirtOnly
  *
  */
-export const { squiz } = registerControl('squiz');
+export const { squiz } = registerControl('squiz')
 // TODO: what is this? not found in tidal doc
 // ['stutterdepth'],
 // TODO: what is this? not found in tidal doc
@@ -2027,7 +2038,7 @@ export const { squiz } = registerControl('squiz');
  * s("bd sd mt ht bd [~ cp] ht lt").vowel("[a|e|i|o|u]")
  *
  */
-export const { vowel } = registerControl('vowel');
+export const { vowel } = registerControl('vowel')
 /* // TODO: find out how it works
  * Made by Calum Gunn. Divides an audio stream into tiny segments, using the signal's zero-crossings as segment boundaries, and discards a fraction of them. Takes a number between 1 and 100, denoted the percentage of segments to drop. The SuperCollider manual describes the Waveloss effect this way:
  *
@@ -2038,7 +2049,7 @@ export const { vowel } = registerControl('vowel');
  *
  * @name waveloss
  */
-export const { waveloss } = registerControl('waveloss');
+export const { waveloss } = registerControl('waveloss')
 /**
  * Noise crackle density
  *
@@ -2048,47 +2059,47 @@ export const { waveloss } = registerControl('waveloss');
  * s("crackle*4").density("<0.01 0.04 0.2 0.5>".slow(4))
  *
  */
-export const { density } = registerControl('density');
+export const { density } = registerControl('density')
 // ['modwheel'],
-export const { expression } = registerControl('expression');
-export const { sustainpedal } = registerControl('sustainpedal');
+export const { expression } = registerControl('expression')
+export const { sustainpedal } = registerControl('sustainpedal')
 
-export const { fshift } = registerControl('fshift');
-export const { fshiftnote } = registerControl('fshiftnote');
-export const { fshiftphase } = registerControl('fshiftphase');
+export const { fshift } = registerControl('fshift')
+export const { fshiftnote } = registerControl('fshiftnote')
+export const { fshiftphase } = registerControl('fshiftphase')
 
-export const { triode } = registerControl('triode');
-export const { krush } = registerControl('krush');
-export const { kcutoff } = registerControl('kcutoff');
-export const { octer } = registerControl('octer');
-export const { octersub } = registerControl('octersub');
-export const { octersubsub } = registerControl('octersubsub');
-export const { ring } = registerControl('ring');
-export const { ringf } = registerControl('ringf');
-export const { ringdf } = registerControl('ringdf');
-export const { freeze } = registerControl('freeze');
-export const { xsdelay } = registerControl('xsdelay');
-export const { tsdelay } = registerControl('tsdelay');
-export const { real } = registerControl('real');
-export const { imag } = registerControl('imag');
-export const { enhance } = registerControl('enhance');
-export const { partials } = registerControl('partials');
-export const { comb } = registerControl('comb');
-export const { smear } = registerControl('smear');
-export const { scram } = registerControl('scram');
-export const { binshift } = registerControl('binshift');
-export const { hbrick } = registerControl('hbrick');
-export const { lbrick } = registerControl('lbrick');
+export const { triode } = registerControl('triode')
+export const { krush } = registerControl('krush')
+export const { kcutoff } = registerControl('kcutoff')
+export const { octer } = registerControl('octer')
+export const { octersub } = registerControl('octersub')
+export const { octersubsub } = registerControl('octersubsub')
+export const { ring } = registerControl('ring')
+export const { ringf } = registerControl('ringf')
+export const { ringdf } = registerControl('ringdf')
+export const { freeze } = registerControl('freeze')
+export const { xsdelay } = registerControl('xsdelay')
+export const { tsdelay } = registerControl('tsdelay')
+export const { real } = registerControl('real')
+export const { imag } = registerControl('imag')
+export const { enhance } = registerControl('enhance')
+export const { partials } = registerControl('partials')
+export const { comb } = registerControl('comb')
+export const { smear } = registerControl('smear')
+export const { scram } = registerControl('scram')
+export const { binshift } = registerControl('binshift')
+export const { hbrick } = registerControl('hbrick')
+export const { lbrick } = registerControl('lbrick')
 
-export const { frameRate } = registerControl('frameRate');
-export const { frames } = registerControl('frames');
-export const { hours } = registerControl('hours');
-export const { minutes } = registerControl('minutes');
-export const { seconds } = registerControl('seconds');
-export const { songPtr } = registerControl('songPtr');
-export const { uid } = registerControl('uid');
-export const { val } = registerControl('val');
-export const { cps } = registerControl('cps');
+export const { frameRate } = registerControl('frameRate')
+export const { frames } = registerControl('frames')
+export const { hours } = registerControl('hours')
+export const { minutes } = registerControl('minutes')
+export const { seconds } = registerControl('seconds')
+export const { songPtr } = registerControl('songPtr')
+export const { uid } = registerControl('uid')
+export const { val } = registerControl('val')
+export const { cps } = registerControl('cps')
 /**
  * Multiplies the duration with the given number. Also cuts samples off at the end if they exceed the duration.
  *
@@ -2099,7 +2110,7 @@ export const { cps } = registerControl('cps');
  * note("c a f e").s("piano").clip("<.5 1 2>")
  *
  */
-export const { clip, legato } = registerControl('clip', 'legato');
+export const { clip, legato } = registerControl('clip', 'legato')
 
 /**
  * Sets the duration of the event in cycles. Similar to clip / legato, it also cuts samples off at the end if they exceed the duration.
@@ -2111,24 +2122,24 @@ export const { clip, legato } = registerControl('clip', 'legato');
  * note("c a f e").s("piano").dur("<.5 1 2>")
  *
  */
-export const { duration, dur } = registerControl('duration', 'dur');
+export const { duration, dur } = registerControl('duration', 'dur')
 
 // ZZFX
-export const { zrand } = registerControl('zrand');
-export const { curve } = registerControl('curve');
+export const { zrand } = registerControl('zrand')
+export const { curve } = registerControl('curve')
 // superdirt duplicate
 // export const {slide]} = registerControl('slide']);
-export const { deltaSlide } = registerControl('deltaSlide');
-export const { pitchJump } = registerControl('pitchJump');
-export const { pitchJumpTime } = registerControl('pitchJumpTime');
-export const { lfo, repeatTime } = registerControl('lfo', 'repeatTime');
+export const { deltaSlide } = registerControl('deltaSlide')
+export const { pitchJump } = registerControl('pitchJump')
+export const { pitchJumpTime } = registerControl('pitchJumpTime')
+export const { lfo, repeatTime } = registerControl('lfo', 'repeatTime')
 // noise on the frequency or as bubo calls it "frequency fog" :)
-export const { znoise } = registerControl('znoise');
-export const { zmod } = registerControl('zmod');
+export const { znoise } = registerControl('znoise')
+export const { zmod } = registerControl('zmod')
 // like crush but scaled differently
-export const { zcrush } = registerControl('zcrush');
-export const { zdelay } = registerControl('zdelay');
-export const { zzfx } = registerControl('zzfx');
+export const { zcrush } = registerControl('zcrush')
+export const { zdelay } = registerControl('zdelay')
+export const { zzfx } = registerControl('zzfx')
 
 /**
  * Sets the color of the hap in visualizations like pianoroll or highlighting.
@@ -2136,12 +2147,12 @@ export const { zzfx } = registerControl('zzfx');
  * @synonyms colour
  * @param {string} color Hexadecimal or CSS color name
  */
-export const { color, colour } = registerControl(['color', 'colour']);
+export const { color, colour } = registerControl(['color', 'colour'])
 
 // TODO: slice / splice https://www.youtube.com/watch?v=hKhPdO0RKDQ&list=PL2lW1zNIIwj3bDkh-Y3LUGDuRcoUigoDs&index=13
 
 export let createParams = (...names) =>
-  names.reduce((acc, name) => Object.assign(acc, { [name]: createParam(name) }), {});
+  names.reduce((acc, name) => Object.assign(acc, { [name]: createParam(name) }), {})
 
 /**
  * ADSR envelope: Combination of Attack, Decay, Sustain, and Release.
@@ -2155,25 +2166,25 @@ export let createParams = (...names) =>
  * note("[c3 bb2 f3 eb3]*2").sound("sawtooth").lpf(600).adsr(".1:.1:.5:.2")
  */
 export const adsr = register('adsr', (adsr, pat) => {
-  adsr = !Array.isArray(adsr) ? [adsr] : adsr;
-  const [attack, decay, sustain, release] = adsr;
-  return pat.set({ attack, decay, sustain, release });
-});
+  adsr = !Array.isArray(adsr) ? [adsr] : adsr
+  const [attack, decay, sustain, release] = adsr
+  return pat.set({ attack, decay, sustain, release })
+})
 export const ad = register('ad', (t, pat) => {
-  t = !Array.isArray(t) ? [t] : t;
-  const [attack, decay = attack] = t;
-  return pat.attack(attack).decay(decay);
-});
+  t = !Array.isArray(t) ? [t] : t
+  const [attack, decay = attack] = t
+  return pat.attack(attack).decay(decay)
+})
 export const ds = register('ds', (t, pat) => {
-  t = !Array.isArray(t) ? [t] : t;
-  const [decay, sustain = 0] = t;
-  return pat.set({ decay, sustain });
-});
+  t = !Array.isArray(t) ? [t] : t
+  const [decay, sustain = 0] = t
+  return pat.set({ decay, sustain })
+})
 export const ar = register('ar', (t, pat) => {
-  t = !Array.isArray(t) ? [t] : t;
-  const [attack, release = attack] = t;
-  return pat.set({ attack, release });
-});
+  t = !Array.isArray(t) ? [t] : t
+  const [attack, release = attack] = t
+  return pat.set({ attack, release })
+})
 
 //MIDI
 
@@ -2185,9 +2196,9 @@ export const ar = register('ar', (t, pat) => {
  * @example
  * note("c4").midichan(1).midi()
  */
-export const { midichan } = registerControl('midichan');
+export const { midichan } = registerControl('midichan')
 
-export const { midimap } = registerControl('midimap');
+export const { midimap } = registerControl('midimap')
 
 /**
  * MIDI port: Sets the MIDI port for the event.
@@ -2197,7 +2208,7 @@ export const { midimap } = registerControl('midimap');
  * @example
  * note("c a f e").midiport("<0 1 2 3>").midi()
  */
-export const { midiport } = registerControl('midiport');
+export const { midiport } = registerControl('midiport')
 
 /**
  * MIDI command: Sends a MIDI command message.
@@ -2207,7 +2218,7 @@ export const { midiport } = registerControl('midiport');
  * @example
  * midicmd("clock*48,<start stop>/2").midi()
  */
-export const { midicmd } = registerControl('midicmd');
+export const { midicmd } = registerControl('midicmd')
 
 /**
  * MIDI control: Sends a MIDI control change message.
@@ -2218,11 +2229,11 @@ export const { midicmd } = registerControl('midicmd');
  */
 export const control = register('control', (args, pat) => {
   if (!Array.isArray(args)) {
-    throw new Error('control expects an array of [ccn, ccv]');
+    throw new Error('control expects an array of [ccn, ccv]')
   }
-  const [_ccn, _ccv] = args;
-  return pat.ccn(_ccn).ccv(_ccv);
-});
+  const [_ccn, _ccv] = args
+  return pat.ccn(_ccn).ccv(_ccv)
+})
 
 /**
  * MIDI control number: Sends a MIDI control change message.
@@ -2230,15 +2241,15 @@ export const control = register('control', (args, pat) => {
  * @name ccn
  * @param {number | Pattern}  MIDI control number (0-127)
  */
-export const { ccn } = registerControl('ccn');
+export const { ccn } = registerControl('ccn')
 /**
  * MIDI control value: Sends a MIDI control change message.
  *
  * @name ccv
  * @param {number | Pattern}  MIDI control value (0-127)
  */
-export const { ccv } = registerControl('ccv');
-export const { ctlNum } = registerControl('ctlNum');
+export const { ccv } = registerControl('ccv')
+export const { ctlNum } = registerControl('ctlNum')
 // TODO: ctlVal?
 
 /**
@@ -2248,7 +2259,7 @@ export const { ctlNum } = registerControl('ctlNum');
  * @example
  * note("c4").nrpnn("1:8").nrpv("123").midichan(1).midi()
  */
-export const { nrpnn } = registerControl('nrpnn');
+export const { nrpnn } = registerControl('nrpnn')
 /**
  * MIDI NRPN non-registered parameter value: Sends a MIDI NRPN non-registered parameter value message.
  * @name nrpv
@@ -2256,7 +2267,7 @@ export const { nrpnn } = registerControl('nrpnn');
  * @example
  * note("c4").nrpnn("1:8").nrpv("123").midichan(1).midi()
  */
-export const { nrpv } = registerControl('nrpv');
+export const { nrpv } = registerControl('nrpv')
 
 /**
  * MIDI program number: Sends a MIDI program change message.
@@ -2266,7 +2277,7 @@ export const { nrpv } = registerControl('nrpv');
  * @example
  * note("c4").progNum(10).midichan(1).midi()
  */
-export const { progNum } = registerControl('progNum');
+export const { progNum } = registerControl('progNum')
 
 /**
  * MIDI sysex: Sends a MIDI sysex message.
@@ -2278,11 +2289,11 @@ export const { progNum } = registerControl('progNum');
  */
 export const sysex = register('sysex', (args, pat) => {
   if (!Array.isArray(args)) {
-    throw new Error('sysex expects an array of [id, data]');
+    throw new Error('sysex expects an array of [id, data]')
   }
-  const [id, data] = args;
-  return pat.sysexid(id).sysexdata(data);
-});
+  const [id, data] = args
+  return pat.sysexid(id).sysexdata(data)
+})
 /**
  * MIDI sysex ID: Sends a MIDI sysex identifier message.
  * @name sysexid
@@ -2290,7 +2301,7 @@ export const sysex = register('sysex', (args, pat) => {
  * @example
  * note("c4").sysexid("0x77").sysexdata("0x01:0x02:0x03:0x04").midichan(1).midi()
  */
-export const { sysexid } = registerControl('sysexid');
+export const { sysexid } = registerControl('sysexid')
 /**
  * MIDI sysex data: Sends a MIDI sysex message.
  * @name sysexdata
@@ -2298,7 +2309,7 @@ export const { sysexid } = registerControl('sysexid');
  * @example
  * note("c4").sysexid("0x77").sysexdata("0x01:0x02:0x03:0x04").midichan(1).midi()
  */
-export const { sysexdata } = registerControl('sysexdata');
+export const { sysexdata } = registerControl('sysexdata')
 
 /**
  * MIDI pitch bend: Sends a MIDI pitch bend message.
@@ -2307,7 +2318,7 @@ export const { sysexdata } = registerControl('sysexdata');
  * @example
  * note("c4").midibend(sine.slow(4).range(-0.4,0.4)).midi()
  */
-export const { midibend } = registerControl('midibend');
+export const { midibend } = registerControl('midibend')
 /**
  * MIDI key after touch: Sends a MIDI key after touch message.
  * @name miditouch
@@ -2315,17 +2326,17 @@ export const { midibend } = registerControl('midibend');
  * @example
  * note("c4").miditouch(sine.slow(4).range(0,1)).midi()
  */
-export const { miditouch } = registerControl('miditouch');
+export const { miditouch } = registerControl('miditouch')
 
 // TODO: what is this?
-export const { polyTouch } = registerControl('polyTouch');
+export const { polyTouch } = registerControl('polyTouch')
 
 export const getControlName = (alias) => {
   if (controlAlias.has(alias)) {
-    return controlAlias.get(alias);
+    return controlAlias.get(alias)
   }
-  return alias;
-};
+  return alias
+}
 
 /**
  * Sets properties in a batch.
@@ -2338,13 +2349,13 @@ export const getControlName = (alias) => {
  * "{0@2 0.25 0 0.5 .3 .5}%8".as("begin").s("sax_vib").clip(1)
  */
 export const as = register('as', (mapping, pat) => {
-  mapping = Array.isArray(mapping) ? mapping : [mapping];
+  mapping = Array.isArray(mapping) ? mapping : [mapping]
   return pat.fmap((v) => {
-    v = Array.isArray(v) ? v : [v];
-    v = Object.fromEntries(mapping.map((prop, i) => [getControlName(prop), v[i]]));
-    return v;
-  });
-});
+    v = Array.isArray(v) ? v : [v]
+    v = Object.fromEntries(mapping.map((prop, i) => [getControlName(prop), v[i]]))
+    return v
+  })
+})
 
 /**
  * Allows you to scrub an audio file like a tape loop by passing values that represents the position in the audio file
@@ -2365,12 +2376,12 @@ export const scrub = register(
   (beginPat, pat) => {
     return beginPat.outerBind((v) => {
       if (!Array.isArray(v)) {
-        v = [v];
+        v = [v]
       }
-      const [beginVal, speedMultiplier = 1] = v;
+      const [beginVal, speedMultiplier = 1] = v
 
-      return pat.begin(beginVal).mul(speed(speedMultiplier)).clip(1);
-    });
+      return pat.begin(beginVal).mul(speed(speedMultiplier)).clip(1)
+    })
   },
-  false,
-);
+  false
+)

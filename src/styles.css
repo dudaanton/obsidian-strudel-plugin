@@ -1,0 +1,5 @@
+.strudel-mark {
+  /* outline: solid 2px var(--text-accent); */
+  background-color: var(--text-selection);
+  border-radius: var(--radius-s);
+}

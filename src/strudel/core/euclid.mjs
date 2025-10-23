@@ -10,46 +10,46 @@ https://rohandrape.net/?t=hmt
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { timeCat, register, silence, stack, pure, _morph } from './pattern.mjs';
-import { rotate, flatten, splitAt, zipWith } from './util.mjs';
-import Fraction, { lcm } from './fraction.mjs';
+import { timeCat, register, silence, stack, pure, _morph } from './pattern.mjs'
+import { rotate, flatten, splitAt, zipWith } from './util.mjs'
+import Fraction, { lcm } from './fraction.mjs'
 
 const left = function (n, x) {
-  const [ons, offs] = n;
-  const [xs, ys] = x;
-  const [_xs, __xs] = splitAt(offs, xs);
+  const [ons, offs] = n
+  const [xs, ys] = x
+  const [_xs, __xs] = splitAt(offs, xs)
   return [
     [offs, ons - offs],
     [zipWith((a, b) => a.concat(b), _xs, ys), __xs],
-  ];
-};
+  ]
+}
 
 const right = function (n, x) {
-  const [ons, offs] = n;
-  const [xs, ys] = x;
-  const [_ys, __ys] = splitAt(ons, ys);
+  const [ons, offs] = n
+  const [xs, ys] = x
+  const [_ys, __ys] = splitAt(ons, ys)
   const result = [
     [ons, offs - ons],
     [zipWith((a, b) => a.concat(b), xs, _ys), __ys],
-  ];
-  return result;
-};
+  ]
+  return result
+}
 
 const _bjork = function (n, x) {
-  const [ons, offs] = n;
-  return Math.min(ons, offs) <= 1 ? [n, x] : _bjork(...(ons > offs ? left(n, x) : right(n, x)));
-};
+  const [ons, offs] = n
+  return Math.min(ons, offs) <= 1 ? [n, x] : _bjork(...(ons > offs ? left(n, x) : right(n, x)))
+}
 
 export const bjork = function (ons, steps) {
-  const inverted = ons < 0;
-  const absOns = Math.abs(ons);
-  const offs = steps - absOns;
-  const ones = Array(absOns).fill([1]);
-  const zeros = Array(offs).fill([0]);
-  const result = _bjork([absOns, offs], [ones, zeros]);
-  const pattern = flatten(result[1][0]).concat(flatten(result[1][1]));
-  return inverted ? pattern.map((x) => 1 - x) : pattern;
-};
+  const inverted = ons < 0
+  const absOns = Math.abs(ons)
+  const offs = steps - absOns
+  const ones = Array(absOns).fill([1])
+  const zeros = Array(offs).fill([0])
+  const result = _bjork([absOns, offs], [ones, zeros])
+  const pattern = flatten(result[1][0]).concat(flatten(result[1][1]))
+  return inverted ? pattern.map((x) => 1 - x) : pattern
+}
 
 /**
  * Changes the structure of the pattern to form an Euclidean rhythm.
@@ -128,28 +128,31 @@ export const bjork = function (ons, steps) {
  */
 
 const _euclidRot = function (pulses, steps, rotation) {
-  const b = bjork(pulses, steps);
+  const b = bjork(pulses, steps)
   if (rotation) {
-    return rotate(b, -rotation);
+    return rotate(b, -rotation)
   }
-  return b;
-};
+  return b
+}
 
 export const euclid = register('euclid', function (pulses, steps, pat) {
-  return pat.struct(_euclidRot(pulses, steps, 0));
-});
+  return pat.struct(_euclidRot(pulses, steps, 0))
+})
 
 export const e = register('e', function (euc, pat) {
   if (!Array.isArray(euc)) {
-    euc = [euc];
+    euc = [euc]
   }
-  const [pulses, steps = pulses, rot = 0] = euc;
-  return pat.struct(_euclidRot(pulses, steps, rot));
-});
+  const [pulses, steps = pulses, rot = 0] = euc
+  return pat.struct(_euclidRot(pulses, steps, rot))
+})
 
-export const { euclidrot, euclidRot } = register(['euclidrot', 'euclidRot'], function (pulses, steps, rotation, pat) {
-  return pat.struct(_euclidRot(pulses, steps, rotation));
-});
+export const { euclidrot, euclidRot } = register(
+  ['euclidrot', 'euclidRot'],
+  function (pulses, steps, rotation, pat) {
+    return pat.struct(_euclidRot(pulses, steps, rotation))
+  }
+)
 
 /**
  * Similar to `euclid`, but each pulse is held until the next pulse,
@@ -166,20 +169,20 @@ export const { euclidrot, euclidRot } = register(['euclidrot', 'euclidRot'], fun
 
 const _euclidLegato = function (pulses, steps, rotation, pat) {
   if (pulses < 1) {
-    return silence;
+    return silence
   }
-  const bin_pat = _euclidRot(pulses, steps, 0);
+  const bin_pat = _euclidRot(pulses, steps, 0)
   const gapless = bin_pat
     .join('')
     .split('1')
     .slice(1)
-    .map((s) => [s.length + 1, true]);
-  return pat.struct(timeCat(...gapless)).late(Fraction(rotation).div(steps));
-};
+    .map((s) => [s.length + 1, true])
+  return pat.struct(timeCat(...gapless)).late(Fraction(rotation).div(steps))
+}
 
 export const euclidLegato = register(['euclidLegato'], function (pulses, steps, pat) {
-  return _euclidLegato(pulses, steps, 0, pat);
-});
+  return _euclidLegato(pulses, steps, 0, pat)
+})
 
 /**
  * Similar to `euclid`, but each pulse is held until the next pulse,
@@ -193,9 +196,12 @@ export const euclidLegato = register(['euclidLegato'], function (pulses, steps, 
  * @example
  * note("c3").euclidLegatoRot(3,5,2)
  */
-export const euclidLegatoRot = register(['euclidLegatoRot'], function (pulses, steps, rotation, pat) {
-  return _euclidLegato(pulses, steps, rotation, pat);
-});
+export const euclidLegatoRot = register(
+  ['euclidLegatoRot'],
+  function (pulses, steps, rotation, pat) {
+    return _euclidLegato(pulses, steps, rotation, pat)
+  }
+)
 
 /**
  * A 'euclid' variant with an additional parameter that morphs the resulting
@@ -215,7 +221,10 @@ export const euclidLegatoRot = register(['euclidLegatoRot'], function (pulses, s
  * sound("hh").euclidish(7,12,sine.slow(8))
  * .pan(sine.slow(8))
  */
-export const { euclidish, eish } = register(['euclidish', 'eish'], function (pulses, steps, perc, pat) {
-  const morphed = _morph(bjork(pulses, steps), new Array(pulses).fill(1), perc);
-  return pat.struct(morphed).setSteps(steps);
-});
+export const { euclidish, eish } = register(
+  ['euclidish', 'eish'],
+  function (pulses, steps, perc, pat) {
+    const morphed = _morph(bjork(pulses, steps), new Array(pulses).fill(1), perc)
+    return pat.struct(morphed).setSteps(steps)
+  }
+)

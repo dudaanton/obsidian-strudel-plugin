@@ -1,2 +1,2 @@
-export * from './mini.mjs';
-export * from './krill-parser.js';
+export * from './mini.mjs'
+export * from './krill-parser.js'

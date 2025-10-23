@@ -1,6 +1,6 @@
-import { Pattern, clamp } from '@strudel/core';
-import { getDrawContext, getTheme } from '@strudel/draw';
-import { analysers, getAnalyzerData } from 'superdough';
+import { Pattern, clamp } from '../core/index.mjs'
+import { getDrawContext, getTheme } from '../draw/index.mjs'
+import { analysers, getAnalyzerData } from '../superdough/index.mjs'
 
 export function drawTimeScope(
   analyser,
@@ -13,85 +13,94 @@ export function drawTimeScope(
     trigger = 0,
     ctx = getDrawContext(),
     id = 1,
-  } = {},
+  } = {}
 ) {
-  ctx.lineWidth = thickness;
-  ctx.strokeStyle = color;
-  let canvas = ctx.canvas;
+  ctx.lineWidth = thickness
+  ctx.strokeStyle = color
+  let canvas = ctx.canvas
 
   if (!analyser) {
     // if analyser is undefined, draw straight line
     // it may be undefined when no sound has been played yet
-    ctx.beginPath();
-    let y = pos * canvas.height;
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.stroke();
-    return;
+    ctx.beginPath()
+    let y = pos * canvas.height
+    ctx.moveTo(0, y)
+    ctx.lineTo(canvas.width, y)
+    ctx.stroke()
+    return
   }
-  const dataArray = getAnalyzerData('time', id);
+  const dataArray = getAnalyzerData('time', id)
 
-  ctx.beginPath();
+  ctx.beginPath()
 
-  const bufferSize = analyser.frequencyBinCount;
+  const bufferSize = analyser.frequencyBinCount
   let triggerIndex = align
     ? Array.from(dataArray).findIndex((v, i, arr) => i && arr[i - 1] > -trigger && v <= -trigger)
-    : 0;
-  triggerIndex = Math.max(triggerIndex, 0); // fallback to 0 when no trigger is found
+    : 0
+  triggerIndex = Math.max(triggerIndex, 0) // fallback to 0 when no trigger is found
 
-  const sliceWidth = (canvas.width * 1.0) / bufferSize;
-  let x = 0;
+  const sliceWidth = (canvas.width * 1.0) / bufferSize
+  let x = 0
   for (let i = triggerIndex; i < bufferSize; i++) {
-    const v = dataArray[i] + 1;
-    const y = (pos - scale * (v - 1)) * canvas.height;
+    const v = dataArray[i] + 1
+    const y = (pos - scale * (v - 1)) * canvas.height
 
     if (i === 0) {
-      ctx.moveTo(x, y);
+      ctx.moveTo(x, y)
     } else {
-      ctx.lineTo(x, y);
+      ctx.lineTo(x, y)
     }
-    x += sliceWidth;
+    x += sliceWidth
   }
-  ctx.stroke();
+  ctx.stroke()
 }
 
 export function drawFrequencyScope(
   analyser,
-  { color = 'white', scale = 0.25, pos = 0.75, lean = 0.5, min = -150, max = 0, ctx = getDrawContext(), id = 1 } = {},
+  {
+    color = 'white',
+    scale = 0.25,
+    pos = 0.75,
+    lean = 0.5,
+    min = -150,
+    max = 0,
+    ctx = getDrawContext(),
+    id = 1,
+  } = {}
 ) {
   if (!analyser) {
-    ctx.beginPath();
-    let y = pos * canvas.height;
-    ctx.moveTo(0, y);
-    ctx.lineTo(canvas.width, y);
-    ctx.stroke();
-    return;
+    ctx.beginPath()
+    let y = pos * canvas.height
+    ctx.moveTo(0, y)
+    ctx.lineTo(canvas.width, y)
+    ctx.stroke()
+    return
   }
-  const dataArray = getAnalyzerData('frequency', id);
-  const canvas = ctx.canvas;
+  const dataArray = getAnalyzerData('frequency', id)
+  const canvas = ctx.canvas
 
-  ctx.fillStyle = color;
-  const bufferSize = analyser.frequencyBinCount;
-  const sliceWidth = (canvas.width * 1.0) / bufferSize;
+  ctx.fillStyle = color
+  const bufferSize = analyser.frequencyBinCount
+  const sliceWidth = (canvas.width * 1.0) / bufferSize
 
-  let x = 0;
+  let x = 0
   for (let i = 0; i < bufferSize; i++) {
-    const normalized = clamp((dataArray[i] - min) / (max - min), 0, 1);
-    const v = normalized * scale;
-    const h = v * canvas.height;
-    const y = (pos - v * lean) * canvas.height;
+    const normalized = clamp((dataArray[i] - min) / (max - min), 0, 1)
+    const v = normalized * scale
+    const h = v * canvas.height
+    const y = (pos - v * lean) * canvas.height
 
-    ctx.fillRect(x, y, Math.max(sliceWidth, 1), h);
-    x += sliceWidth;
+    ctx.fillRect(x, y, Math.max(sliceWidth, 1), h)
+    x += sliceWidth
   }
 }
 
 function clearScreen(smear = 0, smearRGB = `0,0,0`, ctx = getDrawContext()) {
   if (!smear) {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   } else {
-    ctx.fillStyle = `rgba(${smearRGB},${1 - smear})`;
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.fillStyle = `rgba(${smearRGB},${1 - smear})`
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
   }
 }
 
@@ -108,15 +117,15 @@ function clearScreen(smear = 0, smearRGB = `0,0,0`, ctx = getDrawContext()) {
  * s("sawtooth").fscope()
  */
 Pattern.prototype.fscope = function (config = {}) {
-  let id = config.id ?? 1;
+  let id = config.id ?? 1
   return this.analyze(id).draw(
     () => {
-      clearScreen(config.smear, '0,0,0', config.ctx);
-      analysers[id] && drawFrequencyScope(analysers[id], config);
+      clearScreen(config.smear, '0,0,0', config.ctx)
+      analysers[id] && drawFrequencyScope(analysers[id], config)
     },
-    { id },
-  );
-};
+    { id }
+  )
+}
 
 /**
  * Renders an oscilloscope for the time domain of the audio signal.
@@ -132,18 +141,18 @@ Pattern.prototype.fscope = function (config = {}) {
  * @example
  * s("sawtooth")._scope()
  */
-let latestColor = {};
+let latestColor = {}
 Pattern.prototype.tscope = function (config = {}) {
-  let id = config.id ?? 1;
+  let id = config.id ?? 1
   return this.analyze(id).draw(
     (haps) => {
-      config.color = haps[0]?.value?.color || getTheme().foreground;
-      latestColor[id] = config.color;
-      clearScreen(config.smear, '0,0,0', config.ctx);
-      drawTimeScope(analysers[id], config);
+      config.color = haps[0]?.value?.color || getTheme().foreground
+      latestColor[id] = config.color
+      clearScreen(config.smear, '0,0,0', config.ctx)
+      drawTimeScope(analysers[id], config)
     },
-    { id },
-  );
-};
+    { id }
+  )
+}
 
-Pattern.prototype.scope = Pattern.prototype.tscope;
+Pattern.prototype.scope = Pattern.prototype.tscope

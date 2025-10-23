@@ -1,0 +1,164 @@
+import { RangeSetBuilder, StateEffect, StateField, Prec } from '@codemirror/state'
+import { Decoration, DecorationSet, EditorView } from '@codemirror/view'
+
+export const setMiniLocations = StateEffect.define<{
+  locations: Array<[number, number]>
+  shift: number
+}>()
+export const showMiniLocations = StateEffect.define<{
+  atTime: number
+  haps: any[]
+}>()
+export const updateMiniLocations = (
+  view: EditorView,
+  locations: Array<[number, number]>,
+  shift: number
+) => {
+  view.dispatch({ effects: setMiniLocations.of({ locations, shift }) })
+}
+export const highlightMiniLocations = (view: EditorView, atTime: number, haps: any[]) => {
+  view.dispatch({ effects: showMiniLocations.of({ atTime, haps }) })
+}
+
+const miniLocations = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none
+  },
+  update(locations, tr) {
+    if (tr.docChanged) {
+      locations = locations.map(tr.changes)
+    }
+
+    // console.log('miniLocations update', tr.effects)
+
+    for (const e of tr.effects) {
+      if (e.is(setMiniLocations)) {
+        // this is called on eval, with the mini locations obtained from the transpiler
+        // codemirror will automatically remap the marks when the document is edited
+        // create a mark for each mini location, adding the range to the spec to find it later
+        const marks = e.value.locations
+          .filter(([from]) => from < tr.newDoc.length)
+          .map(([from, to]) => [from, Math.min(to, tr.newDoc.length)])
+          .map(
+            (range) =>
+              Decoration.mark({
+                id: range.join(':'),
+                // this green is only to verify that the decoration moves when the document is edited
+                // it will be removed later, so the mark is not visible by default
+                // attributes: { style: `background-color: #00CA2880` },
+              }).range(range[0] + e.value.shift, range[1] + e.value.shift) // -> Decoration
+          )
+
+        locations = Decoration.set(marks, true) // -> DecorationSet === RangeSet<Decoration>
+      }
+    }
+
+    return locations
+  },
+})
+
+const visibleMiniLocations = StateField.define<{
+  atTime: number
+  haps: Map<string, any>
+}>({
+  create() {
+    return { atTime: 0, haps: new Map(), shift: 0 }
+  },
+  update(visible, tr) {
+    for (const e of tr.effects) {
+      if (e.is(showMiniLocations)) {
+        // this is called every frame to show the locations that are currently active
+        // we can NOT create new marks because the context.locations haven't changed since eval time
+        // this is why we need to find a way to update the existing decorations, showing the ones that have an active range
+        const haps = new Map()
+        // console.log(e.value, e.value.haps)
+        for (const hap of e.value.haps) {
+          if (!hap.context?.locations || !hap.whole) {
+            continue
+          }
+          for (const { start, end } of hap.context.locations) {
+            // start += e.value.shift
+            // end += e.value.shift
+            const id = `${start}:${end}`
+            if (!haps.has(id) || haps.get(id).whole.begin.lt(hap.whole.begin)) {
+              haps.set(id, hap)
+            }
+          }
+        }
+        visible = { atTime: e.value.atTime, haps }
+      }
+    }
+
+    return visible
+  },
+})
+
+// // Derive the set of decorations from the miniLocations and visibleLocations
+const miniLocationHighlights = EditorView.decorations.compute(
+  [miniLocations, visibleMiniLocations],
+  (state) => {
+    const iterator = state.field(miniLocations).iter()
+    const { haps } = state.field(visibleMiniLocations)
+    const builder = new RangeSetBuilder<Decoration>()
+
+    // console.log('highlighting mini locations', haps, shift)
+
+    while (iterator.value) {
+      const {
+        from,
+        to,
+        value: {
+          spec: { id },
+        },
+      } = iterator
+
+      // console.log(haps, id)
+
+      if (haps.has(id)) {
+        const hap = haps.get(id)
+        const colorMod = hap.value?.color ? ` strudel-mark_${hap.value.color}` : ''
+        // const style = hap.value?.markcss || `outline: solid 2px ${color}`
+        const classStr = `strudel-mark${colorMod}`
+        // Get explicit channels for color values
+        /* 
+      const swatch = document.createElement('div');
+      swatch.style.color = color;
+      document.body.appendChild(swatch);
+      let channels = getComputedStyle(swatch)
+        .color.match(/^rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d*(?:\.\d+)?))?\)$/)
+        .slice(1)
+        .map((c) => parseFloat(c || 1));
+      document.body.removeChild(swatch);
+
+      // Get percentage of event
+      const percent = 1 - (atTime - hap.whole.begin) / hap.whole.duration;
+      channels[3] *= percent;
+      */
+
+        builder.add(
+          from,
+          to,
+          Decoration.mark({
+            // attributes: { style: `outline: solid 2px rgba(${channels.join(', ')})` },
+            attributes: { class: classStr },
+          })
+        )
+      }
+
+      iterator.next()
+    }
+
+    return builder.finish()
+  }
+)
+
+export const highlightExtension = [miniLocations, visibleMiniLocations, miniLocationHighlights]
+
+// export const isPatternHighlightingEnabled = (on, config) => {
+//   on &&
+//     config &&
+//     setTimeout(() => {
+//       updateMiniLocations(config.editor, config.miniLocations)
+//     }, 100)
+//   return on ? Prec.highest(highlightExtension) : []
+// }

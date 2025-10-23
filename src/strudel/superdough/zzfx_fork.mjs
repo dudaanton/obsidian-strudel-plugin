@@ -1,4 +1,4 @@
-import { getAudioContext } from './audioContext.mjs';
+import { getAudioContext } from './audioContext.mjs'
 
 // https://github.com/KilledByAPixel/ZzFX/blob/master/ZzFX.js#L85C5-L180C6
 // changes: replaced this.volume with 1 + using sampleRate from getAudioContext()
@@ -22,14 +22,15 @@ export function buildSamples(
   delay = 0,
   sustainVolume = 1,
   decay = 0,
-  tremolo = 0,
+  tremolo = 0
 ) {
   // init parameters
   let PI2 = Math.PI * 2,
     sampleRate = getAudioContext().sampleRate,
     sign = (v) => (v > 0 ? 1 : -1),
     startSlide = (slide *= (500 * PI2) / sampleRate / sampleRate),
-    startFrequency = (frequency *= ((1 + randomness * 2 * Math.random() - randomness) * PI2) / sampleRate),
+    startFrequency = (frequency *=
+      ((1 + randomness * 2 * Math.random() - randomness) * PI2) / sampleRate),
     b = [],
     t = 0,
     tm = 0,
@@ -39,19 +40,19 @@ export function buildSamples(
     c = 0,
     s = 0,
     f,
-    length;
+    length
 
   // scale by sample rate
-  attack = attack * sampleRate + 9; // minimum attack to prevent pop
-  decay *= sampleRate;
-  sustain *= sampleRate;
-  release *= sampleRate;
-  delay *= sampleRate;
-  deltaSlide *= (500 * PI2) / sampleRate ** 3;
-  modulation *= PI2 / sampleRate;
-  pitchJump *= PI2 / sampleRate;
-  pitchJumpTime *= sampleRate;
-  repeatTime = (repeatTime * sampleRate) | 0;
+  attack = attack * sampleRate + 9 // minimum attack to prevent pop
+  decay *= sampleRate
+  sustain *= sampleRate
+  release *= sampleRate
+  delay *= sampleRate
+  deltaSlide *= (500 * PI2) / sampleRate ** 3
+  modulation *= PI2 / sampleRate
+  pitchJump *= PI2 / sampleRate
+  pitchJumpTime *= sampleRate
+  repeatTime = (repeatTime * sampleRate) | 0
 
   // generate waveform
   for (length = (attack + decay + sustain + release + delay) | 0; i < length; b[i++] = s) {
@@ -65,7 +66,7 @@ export function buildSamples(
               : Math.max(Math.min(Math.tan(t), 1), -1) // 3 tan
             : 1 - (((((2 * t) / PI2) % 2) + 2) % 2) // 2 saw
           : 1 - 4 * Math.abs(Math.round(t / PI2) - t / PI2) // 1 triangle
-        : Math.sin(t); // 0 sin
+        : Math.sin(t) // 0 sin
 
       s =
         (repeatTime
@@ -84,7 +85,7 @@ export function buildSamples(
               : i < length - delay // release
                 ? ((length - i - delay) / release) * // release falloff
                   sustainVolume // release volume
-                : 0); // post release
+                : 0) // post release
 
       s = delay
         ? s / 2 +
@@ -93,28 +94,28 @@ export function buildSamples(
             : ((i < length - delay ? 1 : (length - i) / delay) * // release delay
                 b[(i - delay) | 0]) /
               2)
-        : s; // sample delay
+        : s // sample delay
     }
 
     f =
       (frequency += slide += deltaSlide) * // frequency
-      Math.cos(modulation * tm++); // modulation
-    t += f - f * noise * (1 - (((Math.sin(i) + 1) * 1e9) % 2)); // noise
+      Math.cos(modulation * tm++) // modulation
+    t += f - f * noise * (1 - (((Math.sin(i) + 1) * 1e9) % 2)) // noise
 
     if (j && ++j > pitchJumpTime) {
       // pitch jump
-      frequency += pitchJump; // apply pitch jump
-      startFrequency += pitchJump; // also apply to start
-      j = 0; // stop pitch jump time
+      frequency += pitchJump // apply pitch jump
+      startFrequency += pitchJump // also apply to start
+      j = 0 // stop pitch jump time
     }
 
     if (repeatTime && !(++r % repeatTime)) {
       // repeat
-      frequency = startFrequency; // reset frequency
-      slide = startSlide; // reset slide
-      j ||= 1; // reset pitch jump time
+      frequency = startFrequency // reset frequency
+      slide = startSlide // reset slide
+      j ||= 1 // reset pitch jump time
     }
   }
 
-  return b;
+  return b
 }

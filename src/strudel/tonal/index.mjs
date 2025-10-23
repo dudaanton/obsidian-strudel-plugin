@@ -1,9 +1,9 @@
-import './tonal.mjs';
-import './voicings.mjs';
-import './ireal.mjs';
+import './tonal.mjs'
+import './voicings.mjs'
+import './ireal.mjs'
 
-export * from './tonal.mjs';
-export * from './voicings.mjs';
-export * from './ireal.mjs';
+export * from './tonal.mjs'
+export * from './voicings.mjs'
+export * from './ireal.mjs'
 
-export const packageName = '@strudel/tonal';
+export const packageName = '../tonal/index.mjs'

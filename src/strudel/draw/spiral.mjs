@@ -1,13 +1,14 @@
-import { Pattern } from '@strudel/core';
-import { getTheme } from './draw.mjs';
+import { Pattern } from '../core/index.mjs'
+import { getTheme } from './draw.mjs'
 
 // polar coords -> xy
 function fromPolar(angle, radius, cx, cy) {
-  const radians = ((angle - 90) * Math.PI) / 180;
-  return [cx + Math.cos(radians) * radius, cy + Math.sin(radians) * radius];
+  const radians = ((angle - 90) * Math.PI) / 180
+  return [cx + Math.cos(radians) * radius, cy + Math.sin(radians) * radius]
 }
 
-const xyOnSpiral = (angle, margin, cx, cy, rotate = 0) => fromPolar((angle + rotate) * 360, margin * angle, cx, cy); // TODO: logSpiral
+const xyOnSpiral = (angle, margin, cx, cy, rotate = 0) =>
+  fromPolar((angle + rotate) * 360, margin * angle, cx, cy) // TODO: logSpiral
 
 // draw spiral / segment of spiral
 function spiralSegment(options) {
@@ -25,29 +26,29 @@ function spiralSegment(options) {
     stretch = 1,
     fromOpacity = 1,
     toOpacity = 1,
-  } = options;
-  from *= stretch;
-  to *= stretch;
-  rotate *= stretch;
-  ctx.lineWidth = thickness;
-  ctx.lineCap = cap;
-  ctx.strokeStyle = color;
-  ctx.globalAlpha = fromOpacity;
+  } = options
+  from *= stretch
+  to *= stretch
+  rotate *= stretch
+  ctx.lineWidth = thickness
+  ctx.lineCap = cap
+  ctx.strokeStyle = color
+  ctx.globalAlpha = fromOpacity
 
-  ctx.beginPath();
-  let [sx, sy] = xyOnSpiral(from, margin, cx, cy, rotate);
-  ctx.moveTo(sx, sy);
+  ctx.beginPath()
+  let [sx, sy] = xyOnSpiral(from, margin, cx, cy, rotate)
+  ctx.moveTo(sx, sy)
 
-  const increment = 1 / 60;
-  let angle = from;
+  const increment = 1 / 60
+  let angle = from
   while (angle <= to) {
-    const [x, y] = xyOnSpiral(angle, margin, cx, cy, rotate);
+    const [x, y] = xyOnSpiral(angle, margin, cx, cy, rotate)
     //ctx.lineWidth = angle*thickness;
-    ctx.globalAlpha = ((angle - from) / (to - from)) * toOpacity;
-    ctx.lineTo(x, y);
-    angle += increment;
+    ctx.globalAlpha = ((angle - from) / (to - from)) * toOpacity
+    ctx.lineTo(x, y)
+    angle += increment
   }
-  ctx.stroke();
+  ctx.stroke()
 }
 
 function drawSpiral(options) {
@@ -72,15 +73,15 @@ function drawSpiral(options) {
     haps,
     drawTime,
     id,
-  } = options;
+  } = options
 
   if (id) {
-    haps = haps.filter((hap) => hap.hasTag(id));
+    haps = haps.filter((hap) => hap.hasTag(id))
   }
 
-  const [w, h] = [ctx.canvas.width, ctx.canvas.height];
-  ctx.clearRect(0, 0, w * 2, h * 2);
-  const [cx, cy] = [w / 2, h / 2];
+  const [w, h] = [ctx.canvas.width, ctx.canvas.height]
+  ctx.clearRect(0, 0, w * 2, h * 2)
+  const [cx, cy] = [w / 2, h / 2]
   const settings = {
     margin: size / stretch,
     cx,
@@ -88,7 +89,7 @@ function drawSpiral(options) {
     stretch,
     cap,
     thickness,
-  };
+  }
 
   const playhead = {
     ...settings,
@@ -96,17 +97,17 @@ function drawSpiral(options) {
     from: inset - playheadLength,
     to: inset,
     color: playheadColor,
-  };
+  }
 
-  const [min] = drawTime;
-  const rotate = steady * time;
+  const [min] = drawTime
+  const rotate = steady * time
   haps.forEach((hap) => {
-    const isActive = hap.whole.begin <= time && hap.endClipped > time;
-    const from = hap.whole.begin - time + inset;
-    const to = hap.endClipped - time + inset - padding;
-    const hapColor = hap.value?.color || activeColor;
-    const color = colorizeInactive || isActive ? hapColor : inactiveColor;
-    const opacity = fade ? 1 - Math.abs((hap.whole.begin - time) / min) : 1;
+    const isActive = hap.whole.begin <= time && hap.endClipped > time
+    const from = hap.whole.begin - time + inset
+    const to = hap.endClipped - time + inset - padding
+    const hapColor = hap.value?.color || activeColor
+    const color = colorizeInactive || isActive ? hapColor : inactiveColor
+    const opacity = fade ? 1 - Math.abs((hap.whole.begin - time) / min) : 1
     spiralSegment({
       ctx,
       ...settings,
@@ -116,13 +117,13 @@ function drawSpiral(options) {
       color,
       fromOpacity: opacity,
       toOpacity: opacity,
-    });
-  });
+    })
+  })
   spiralSegment({
     ctx,
     ...playhead,
     rotate,
-  });
+  })
 }
 
 /**
@@ -153,5 +154,7 @@ function drawSpiral(options) {
  * ._spiral({ steady: .96 })
  */
 Pattern.prototype.spiral = function (options = {}) {
-  return this.onPaint((ctx, time, haps, drawTime) => drawSpiral({ ctx, time, haps, drawTime, ...options }));
-};
+  return this.onPaint((ctx, time, haps, drawTime) =>
+    drawSpiral({ ctx, time, haps, drawTime, ...options })
+  )
+}

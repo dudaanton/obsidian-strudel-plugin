@@ -1,10 +1,10 @@
-import { NeoCyclist } from './neocyclist.mjs';
-import { Cyclist } from './cyclist.mjs';
-import { evaluate as _evaluate } from './evaluate.mjs';
-import { errorLogger, logger } from './logger.mjs';
-import { setTime } from './time.mjs';
-import { evalScope } from './evaluate.mjs';
-import { register, Pattern, isPattern, silence, stack } from './pattern.mjs';
+import { NeoCyclist } from './neocyclist.mjs'
+import { Cyclist } from './cyclist.mjs'
+import { evaluate as _evaluate } from './evaluate.mjs'
+import { errorLogger, logger } from './logger.mjs'
+import { setTime } from './time.mjs'
+import { evalScope } from './evaluate.mjs'
+import { register, Pattern, isPattern, silence, stack } from './pattern.mjs'
 
 export function repl({
   defaultOutput,
@@ -33,70 +33,72 @@ export function repl({
     widgets: [],
     pending: false,
     started: false,
-  };
+  }
 
   const transpilerOptions = {
     id,
-  };
+  }
 
   const updateState = (update) => {
-    Object.assign(state, update);
-    state.isDirty = state.code !== state.activeCode;
-    state.error = state.evalError || state.schedulerError;
-    onUpdateState?.(state);
-  };
+    Object.assign(state, update)
+    state.isDirty = state.code !== state.activeCode
+    state.error = state.evalError || state.schedulerError
+    onUpdateState?.(state)
+  }
 
   const schedulerOptions = {
     onTrigger: getTrigger({ defaultOutput, getTime }),
     getTime,
     onToggle: (started) => {
-      updateState({ started });
-      onToggle?.(started);
+      updateState({ started })
+      onToggle?.(started)
     },
     setInterval,
     clearInterval,
     beforeStart,
-  };
+  }
 
   // NeoCyclist uses a shared worker to communicate between instances, which is not supported on mobile chrome
   const scheduler =
-    sync && typeof SharedWorker != 'undefined' ? new NeoCyclist(schedulerOptions) : new Cyclist(schedulerOptions);
-  let pPatterns = {};
-  let anonymousIndex = 0;
-  let allTransform;
-  let eachTransform;
+    sync && typeof SharedWorker != 'undefined'
+      ? new NeoCyclist(schedulerOptions)
+      : new Cyclist(schedulerOptions)
+  let pPatterns = {}
+  let anonymousIndex = 0
+  let allTransform
+  let eachTransform
 
   const hush = function () {
-    pPatterns = {};
-    anonymousIndex = 0;
-    allTransform = undefined;
-    eachTransform = undefined;
-    return silence;
-  };
+    pPatterns = {}
+    anonymousIndex = 0
+    allTransform = undefined
+    eachTransform = undefined
+    return silence
+  }
 
   // helper to get a patternified pure value out
   function unpure(pat) {
     if (pat._Pattern) {
-      return pat.__pure;
+      return pat.__pure
     }
-    return pat;
+    return pat
   }
 
   const setPattern = async (pattern, autostart = true) => {
-    pattern = editPattern?.(pattern) || pattern;
-    await scheduler.setPattern(pattern, autostart);
-    return pattern;
-  };
-  setTime(() => scheduler.now()); // TODO: refactor?
+    pattern = editPattern?.(pattern) || pattern
+    await scheduler.setPattern(pattern, autostart)
+    return pattern
+  }
+  setTime(() => scheduler.now()) // TODO: refactor?
 
-  const stop = () => scheduler.stop();
-  const start = () => scheduler.start();
-  const pause = () => scheduler.pause();
-  const toggle = () => scheduler.toggle();
+  const stop = () => scheduler.stop()
+  const start = () => scheduler.start()
+  const pause = () => scheduler.pause()
+  const toggle = () => scheduler.toggle()
   const setCps = (cps) => {
-    scheduler.setCps(unpure(cps));
-    return silence;
-  };
+    scheduler.setCps(unpure(cps))
+    return silence
+  }
 
   /**
    * Changes the global tempo to the given cycles per minute
@@ -109,9 +111,9 @@ export function repl({
    * $: s("bd*4,[- sd]*2").bank('tr707')
    */
   const setCpm = (cpm) => {
-    scheduler.setCps(unpure(cpm) / 60);
-    return silence;
-  };
+    scheduler.setCps(unpure(cpm) / 60)
+    return silence
+  }
 
   // TODO - not documented as jsdoc examples as the test framework doesn't simulate enough context for `each` and `all`..
 
@@ -128,11 +130,11 @@ export function repl({
    * all(x => x.pianoroll())
    * ```
    */
-  let allTransforms = [];
+  let allTransforms = []
   const all = function (transform) {
-    allTransforms.push(transform);
-    return silence;
-  };
+    allTransforms.push(transform)
+    return silence
+  }
   /** Applies a function to each of the running patterns separately. This is intended for future use with upcoming 'stepwise' features. See `all` for a version that applies the function to all the patterns stacked together into a single pattern.
    * ```
    * $: sound("bd - cp sd")
@@ -141,50 +143,50 @@ export function repl({
    * ```
    */
   const each = function (transform) {
-    eachTransform = transform;
-    return silence;
-  };
+    eachTransform = transform
+    return silence
+  }
 
   // set pattern methods that use this repl via closure
   const injectPatternMethods = () => {
     Pattern.prototype.p = function (id) {
       if (typeof id === 'string' && (id.startsWith('_') || id.endsWith('_'))) {
         // allows muting a pattern x with x_ or _x
-        return silence;
+        return silence
       }
       if (id === '$') {
         // allows adding anonymous patterns with $:
-        id = `$${anonymousIndex}`;
-        anonymousIndex++;
+        id = `$${anonymousIndex}`
+        anonymousIndex++
       }
-      pPatterns[id] = this;
-      return this;
-    };
+      pPatterns[id] = this
+      return this
+    }
     Pattern.prototype.q = function (id) {
-      return silence;
-    };
+      return silence
+    }
     try {
       for (let i = 1; i < 10; ++i) {
         Object.defineProperty(Pattern.prototype, `d${i}`, {
           get() {
-            return this.p(i);
+            return this.p(i)
           },
           configurable: true,
-        });
+        })
         Object.defineProperty(Pattern.prototype, `p${i}`, {
           get() {
-            return this.p(i);
+            return this.p(i)
           },
           configurable: true,
-        });
-        Pattern.prototype[`q${i}`] = silence;
+        })
+        Pattern.prototype[`q${i}`] = silence
       }
     } catch (err) {
-      console.warn('injectPatternMethods: error:', err);
+      console.warn('injectPatternMethods: error:', err)
     }
     const cpm = register('cpm', function (cpm, pat) {
-      return pat._fast(cpm / 60 / scheduler.cps);
-    });
+      return pat._fast(cpm / 60 / scheduler.cps)
+    })
     return evalScope({
       all,
       each,
@@ -194,50 +196,52 @@ export function repl({
       setcps: setCps,
       setCpm,
       setcpm: setCpm,
-    });
-  };
+    })
+  }
 
   const evaluate = async (code, autostart = true, shouldHush = true) => {
     if (!code) {
-      throw new Error('no code to evaluate');
+      throw new Error('no code to evaluate')
     }
     try {
-      updateState({ code, pending: true });
-      await injectPatternMethods();
-      setTime(() => scheduler.now()); // TODO: refactor?
-      await beforeEval?.({ code });
-      allTransforms = []; // reset all transforms
-      shouldHush && hush();
+      updateState({ code, pending: true })
+      await injectPatternMethods()
+      setTime(() => scheduler.now()) // TODO: refactor?
+      await beforeEval?.({ code })
+      allTransforms = [] // reset all transforms
+      shouldHush && hush()
 
       if (mondo) {
-        code = `mondolang\`${code}\``;
+        code = `mondolang\`${code}\``
       }
-      let { pattern, meta } = await _evaluate(code, transpiler, transpilerOptions);
+      let { pattern, meta } = await _evaluate(code, transpiler, transpilerOptions)
       if (Object.keys(pPatterns).length) {
-        let patterns = [];
+        let patterns = []
         for (const [key, value] of Object.entries(pPatterns)) {
-          patterns.push(value.withState((state) => state.setControls({ id: key })));
+          patterns.push(value.withState((state) => state.setControls({ id: key })))
         }
         if (eachTransform) {
           // Explicit lambda so only element (not index and array) are passed
-          patterns = patterns.map((x) => eachTransform(x));
+          patterns = patterns.map((x) => eachTransform(x))
         }
-        pattern = stack(...patterns);
+        pattern = stack(...patterns)
       } else if (eachTransform) {
-        pattern = eachTransform(pattern);
+        pattern = eachTransform(pattern)
       }
       if (allTransforms.length) {
         for (let i in allTransforms) {
-          pattern = allTransforms[i](pattern);
+          pattern = allTransforms[i](pattern)
         }
       }
 
       if (!isPattern(pattern)) {
-        const message = `got "${typeof evaluated}" instead of pattern`;
-        throw new Error(message + (typeof evaluated === 'function' ? ', did you forget to call a function?' : '.'));
+        const message = `got "${typeof evaluated}" instead of pattern`
+        throw new Error(
+          message + (typeof evaluated === 'function' ? ', did you forget to call a function?' : '.')
+        )
       }
-      logger(`[eval] code updated`);
-      pattern = await setPattern(pattern, autostart);
+      logger(`[eval] code updated`)
+      pattern = await setPattern(pattern, autostart)
       updateState({
         miniLocations: meta?.miniLocations || [],
         widgets: meta?.widgets || [],
@@ -246,18 +250,18 @@ export function repl({
         evalError: undefined,
         schedulerError: undefined,
         pending: false,
-      });
-      afterEval?.({ code, pattern, meta });
-      return pattern;
+      })
+      afterEval?.({ code, pattern, meta })
+      return pattern
     } catch (err) {
-      logger(`[eval] error: ${err.message}`, 'error');
-      console.error(err);
-      updateState({ evalError: err, pending: false });
-      onEvalError?.(err);
+      logger(`[eval] error: ${err.message}`, 'error')
+      console.error(err)
+      updateState({ evalError: err, pending: false })
+      onEvalError?.(err)
     }
-  };
-  const setCode = (code) => updateState({ code });
-  return { scheduler, evaluate, start, stop, pause, setCps, setPattern, setCode, toggle, state };
+  }
+  const setCode = (code) => updateState({ code })
+  return { scheduler, evaluate, start, stop, pause, setCps, setPattern, setCode, toggle, state }
 }
 
 export const getTrigger =
@@ -267,13 +271,13 @@ export const getTrigger =
     // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
     try {
       if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
-        await defaultOutput(hap, deadline, duration, cps, t);
+        await defaultOutput(hap, deadline, duration, cps, t)
       }
       if (hap.context.onTrigger) {
         // call signature of output / onTrigger is different...
-        await hap.context.onTrigger(hap, getTime(), cps, t);
+        await hap.context.onTrigger(hap, getTime(), cps, t)
       }
     } catch (err) {
-      errorLogger(err, 'getTrigger');
+      errorLogger(err, 'getTrigger')
     }
-  };
+  }

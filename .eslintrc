@@ -1,0 +1,84 @@
+{
+  "parser": "vue-eslint-parser",
+  "plugins": ["@typescript-eslint/eslint-plugin", "eslint-plugin-vue", "prettier"],
+  "extends": ["plugin:@typescript-eslint/recommended", "plugin:vue/vue3-recommended", "plugin:prettier/recommended"],
+  "parserOptions": {
+    "parser": "@typescript-eslint/parser",
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true
+  },
+  "ignorePatterns": [
+    "docker-formatter.*",
+    "node_modules/*",
+    ".nuxt/*",
+    "dist/*",
+    "dist-electron/*",
+    "server/*",
+    "scripts/*",
+    "src/assets/*"
+  ],
+  "rules": {
+    "arrow-body-style": 0,
+    "class-methods-use-this": 0,
+    "comma-dangle": 0,
+    "func-names": 0,
+    "import/extensions": 0,
+    "import/no-dynamic-require": 0,
+    "import/no-extraneous-dependencies": 0,
+    "import/no-named-as-default-member": 0,
+    "import/no-unresolved": 0,
+    "import/prefer-default-export": 0,
+    "linebreak-style": 0,
+    "max-len": [
+      "warn",
+      {
+        "code": 120,
+        "ignoreTemplateLiterals": true,
+        "ignoreComments": true,
+        "ignoreStrings": true
+      }
+    ],
+    "no-await-in-loop": 0,
+    "no-console": 0,
+    "no-loop-func": 0,
+    "no-mixed-operators": 0,
+    "no-param-reassign": 0,
+    "no-restricted-syntax": 0,
+    "no-shadow": 0,
+    "no-trailing-spaces": 1,
+    "no-underscore-dangle": 0,
+    "no-use-before-define": 0,
+    "prefer-destructuring": 0,
+    "semi": 0,
+    "space-before-function-paren": 0,
+    "vue/multi-word-component-names": "off",
+    "vue/no-dupe-keys": "warn",
+    "vue/no-mutating-props": ["warn", { "shallowOnly": true }],
+    "vue/no-unused-vars": ["warn", { "ignorePattern": "^_" }],
+    "vue/no-use-v-if-with-v-for": "warn",
+    "vue/prop-name-casing": "error",
+    "vue/return-in-computed-property": "off",
+    "vue/require-prop-types": "error",
+    "vue/require-toggle-inside-transition": "warn",
+    "vue/require-typed-object-prop": "error",
+    "vue/require-v-for-key": "warn",
+    "vue/valid-v-for": "warn",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/no-inferrable-types": ["warn", { "ignoreParameters": true }],
+    "@typescript-eslint/no-unsafe-declaration-merging": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "prettier/prettier": ["warn"]
+  }
+}
+

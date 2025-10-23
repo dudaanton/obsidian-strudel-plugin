@@ -146,30 +146,30 @@ export const colorMap = {
   whitesmoke: '#f5f5f5',
   yellow: '#ffff00',
   yellowgreen: '#9acd32',
-};
+}
 
 export function convertColorToNumber(color) {
   // Convert color to lowercase for easier matching
-  color = color.toLowerCase();
+  color = color.toLowerCase()
 
   // If the color is a hex code, convert it to a number
   if (color[0] === '#') {
-    return convertHexToNumber(color);
+    return convertHexToNumber(color)
   }
 
   // If the color is a named color, return the corresponding number
   if (colorMap[color] !== undefined) {
-    return convertHexToNumber(colorMap[color]);
+    return convertHexToNumber(colorMap[color])
   }
 
   // If the color is not recognized, return null
-  return -1;
+  return -1
 }
 
 export function convertHexToNumber(hex) {
   // Remove the leading '#' from the hex code
-  hex = hex.slice(1);
+  hex = hex.slice(1)
 
   // Convert the hex code to a number
-  return parseInt(hex, 16);
+  return parseInt(hex, 16)
 }

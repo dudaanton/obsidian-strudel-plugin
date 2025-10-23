@@ -1,18 +1,18 @@
-let audioContext;
+let audioContext
 
 export const setDefaultAudioContext = () => {
-  audioContext = new AudioContext();
-  return audioContext;
-};
+  audioContext = new AudioContext()
+  return audioContext
+}
 
 export const getAudioContext = () => {
   if (!audioContext) {
-    return setDefaultAudioContext();
+    return setDefaultAudioContext()
   }
 
-  return audioContext;
-};
+  return audioContext
+}
 
 export function getAudioContextCurrentTime() {
-  return getAudioContext().currentTime;
+  return getAudioContext().currentTime
 }

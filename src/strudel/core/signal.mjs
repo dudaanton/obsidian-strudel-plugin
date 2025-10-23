@@ -4,21 +4,21 @@ Copyright (C) 2024 Strudel contributors - see <https://codeberg.org/uzu/strudel/
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Hap } from './hap.mjs';
-import { Pattern, fastcat, pure, register, reify, silence, stack, sequenceP } from './pattern.mjs';
-import Fraction from './fraction.mjs';
+import { Hap } from './hap.mjs'
+import { Pattern, fastcat, pure, register, reify, silence, stack, sequenceP } from './pattern.mjs'
+import Fraction from './fraction.mjs'
 
-import { id, keyAlias, getCurrentKeyboardState } from './util.mjs';
+import { id, keyAlias, getCurrentKeyboardState } from './util.mjs'
 
 export function steady(value) {
   // A continuous value
-  return new Pattern((state) => [new Hap(undefined, state.span, value)]);
+  return new Pattern((state) => [new Hap(undefined, state.span, value)])
 }
 
 export const signal = (func) => {
-  const query = (state) => [new Hap(undefined, state.span, func(state.span.begin))];
-  return new Pattern(query);
-};
+  const query = (state) => [new Hap(undefined, state.span, func(state.span.begin))]
+  return new Pattern(query)
+}
 
 /**
  *  A sawtooth signal between 0 and 1.
@@ -32,14 +32,14 @@ export const signal = (func) => {
  * .scale('C major')
  *
  */
-export const saw = signal((t) => t % 1);
+export const saw = signal((t) => t % 1)
 
 /**
  *  A sawtooth signal between -1 and 1 (like `saw`, but bipolar).
  *
  * @return {Pattern}
  */
-export const saw2 = saw.toBipolar();
+export const saw2 = saw.toBipolar()
 
 /**
  *  A sawtooth signal between 1 and 0 (like `saw`, but flipped).
@@ -53,21 +53,21 @@ export const saw2 = saw.toBipolar();
  * .scale('C major')
  *
  */
-export const isaw = signal((t) => 1 - (t % 1));
+export const isaw = signal((t) => 1 - (t % 1))
 
 /**
  *  A sawtooth signal between 1 and -1 (like `saw2`, but flipped).
  *
  * @return {Pattern}
  */
-export const isaw2 = isaw.toBipolar();
+export const isaw2 = isaw.toBipolar()
 
 /**
  *  A sine signal between -1 and 1 (like `sine`, but bipolar).
  *
  * @return {Pattern}
  */
-export const sine2 = signal((t) => Math.sin(Math.PI * 2 * t));
+export const sine2 = signal((t) => Math.sin(Math.PI * 2 * t))
 
 /**
  *  A sine signal between 0 and 1.
@@ -77,7 +77,7 @@ export const sine2 = signal((t) => Math.sin(Math.PI * 2 * t));
  * .scale("C:minor")
  *
  */
-export const sine = sine2.fromBipolar();
+export const sine = sine2.fromBipolar()
 
 /**
  *  A cosine signal between 0 and 1.
@@ -88,14 +88,14 @@ export const sine = sine2.fromBipolar();
  * .scale("C:minor")
  *
  */
-export const cosine = sine._early(Fraction(1).div(4));
+export const cosine = sine._early(Fraction(1).div(4))
 
 /**
  *  A cosine signal between -1 and 1 (like `cosine`, but bipolar).
  *
  * @return {Pattern}
  */
-export const cosine2 = sine2._early(Fraction(1).div(4));
+export const cosine2 = sine2._early(Fraction(1).div(4))
 
 /**
  *  A square signal between 0 and 1.
@@ -104,14 +104,14 @@ export const cosine2 = sine2._early(Fraction(1).div(4));
  * n(square.segment(4).range(0,7)).scale("C:minor")
  *
  */
-export const square = signal((t) => Math.floor((t * 2) % 2));
+export const square = signal((t) => Math.floor((t * 2) % 2))
 
 /**
  *  A square signal between -1 and 1 (like `square`, but bipolar).
  *
  * @return {Pattern}
  */
-export const square2 = square.toBipolar();
+export const square2 = square.toBipolar()
 
 /**
  *  A triangle signal between 0 and 1.
@@ -121,14 +121,14 @@ export const square2 = square.toBipolar();
  * n(tri.segment(8).range(0,7)).scale("C:minor")
  *
  */
-export const tri = fastcat(saw, isaw);
+export const tri = fastcat(saw, isaw)
 
 /**
  *  A triangle signal between -1 and 1 (like `tri`, but bipolar).
  *
  * @return {Pattern}
  */
-export const tri2 = fastcat(saw2, isaw2);
+export const tri2 = fastcat(saw2, isaw2)
 
 /**
  *  An inverted triangle signal between 1 and 0 (like `tri`, but flipped).
@@ -138,21 +138,21 @@ export const tri2 = fastcat(saw2, isaw2);
  * n(itri.segment(8).range(0,7)).scale("C:minor")
  *
  */
-export const itri = fastcat(isaw, saw);
+export const itri = fastcat(isaw, saw)
 
 /**
  *  An inverted triangle signal between -1 and 1 (like `itri`, but bipolar).
  *
  * @return {Pattern}
  */
-export const itri2 = fastcat(isaw2, saw2);
+export const itri2 = fastcat(isaw2, saw2)
 
 /**
  *  A signal representing the cycle time.
  *
  * @return {Pattern}
  */
-export const time = signal(id);
+export const time = signal(id)
 
 /**
  *  The mouse's x position value ranges from 0 to 1.
@@ -172,48 +172,48 @@ export const time = signal(id);
  *
  */
 let _mouseY = 0,
-  _mouseX = 0;
+  _mouseX = 0
 if (typeof window !== 'undefined') {
   //document.onmousemove = (e) => {
   document.addEventListener('mousemove', (e) => {
-    _mouseY = e.clientY / document.body.clientHeight;
-    _mouseX = e.clientX / document.body.clientWidth;
-  });
+    _mouseY = e.clientY / document.body.clientHeight
+    _mouseX = e.clientX / document.body.clientWidth
+  })
 }
 
-export const mousey = signal(() => _mouseY);
-export const mouseY = signal(() => _mouseY);
-export const mousex = signal(() => _mouseX);
-export const mouseX = signal(() => _mouseX);
+export const mousey = signal(() => _mouseY)
+export const mouseY = signal(() => _mouseY)
+export const mousex = signal(() => _mouseX)
+export const mouseX = signal(() => _mouseX)
 
 // random signals
 
 const xorwise = (x) => {
-  const a = (x << 13) ^ x;
-  const b = (a >> 17) ^ a;
-  return (b << 5) ^ b;
-};
+  const a = (x << 13) ^ x
+  const b = (a >> 17) ^ a
+  return (b << 5) ^ b
+}
 
 // stretch 300 cycles over the range of [0,2**29 == 536870912) then apply the xorshift algorithm
-const _frac = (x) => x - Math.trunc(x);
+const _frac = (x) => x - Math.trunc(x)
 
-const timeToIntSeed = (x) => xorwise(Math.trunc(_frac(x / 300) * 536870912));
+const timeToIntSeed = (x) => xorwise(Math.trunc(_frac(x / 300) * 536870912))
 
-const intSeedToRand = (x) => (x % 536870912) / 536870912;
+const intSeedToRand = (x) => (x % 536870912) / 536870912
 
-const timeToRand = (x) => Math.abs(intSeedToRand(timeToIntSeed(x)));
+const timeToRand = (x) => Math.abs(intSeedToRand(timeToIntSeed(x)))
 
 const timeToRandsPrime = (seed, n) => {
-  const result = [];
+  const result = []
   // eslint-disable-next-line
   for (let i = 0; i < n; ++i) {
-    result.push(intSeedToRand(seed));
-    seed = xorwise(seed);
+    result.push(intSeedToRand(seed))
+    seed = xorwise(seed)
   }
-  return result;
-};
+  return result
+}
 
-const timeToRands = (t, n) => timeToRandsPrime(timeToIntSeed(t), n);
+const timeToRands = (t, n) => timeToRandsPrime(timeToIntSeed(t), n)
 
 /**
  *
@@ -225,7 +225,7 @@ const timeToRands = (t, n) => timeToRandsPrime(timeToIntSeed(t), n);
  * n(run(4)).scale("C4:pentatonic")
  * // n("0 1 2 3").scale("C4:pentatonic")
  */
-export const run = (n) => saw.range(0, n).round().segment(n);
+export const run = (n) => saw.range(0, n).round().segment(n)
 
 /**
  * Creates a pattern from a binary number.
@@ -237,9 +237,9 @@ export const run = (n) => saw.range(0, n).round().segment(n);
  * // "hh".s().struct("1 0 1")
  */
 export const binary = (n) => {
-  const nBits = reify(n).log2(0).floor().add(1);
-  return binaryN(n, nBits);
-};
+  const nBits = reify(n).log2(0).floor().add(1)
+  return binaryN(n, nBits)
+}
 
 /**
  * Creates a pattern from a binary number, padded to n bits long.
@@ -252,29 +252,29 @@ export const binary = (n) => {
  * // "hh".s().struct("1 1 0 1 1 0 0 0 1 1 1 0 1 1 0 0")
  */
 export const binaryN = (n, nBits = 16) => {
-  nBits = reify(nBits);
+  nBits = reify(nBits)
   // Shift and mask, putting msb on the right-side
-  const bitPos = run(nBits).mul(-1).add(nBits.sub(1));
-  return reify(n).segment(nBits).brshift(bitPos).band(pure(1));
-};
+  const bitPos = run(nBits).mul(-1).add(nBits.sub(1))
+  return reify(n).segment(nBits).brshift(bitPos).band(pure(1))
+}
 
 export const randrun = (n) => {
   return signal((t) => {
     // Without adding 0.5, the first cycle is always 0,1,2,3,...
-    const rands = timeToRands(t.floor().add(0.5), n);
+    const rands = timeToRands(t.floor().add(0.5), n)
     const nums = rands
       .map((n, i) => [n, i])
       .sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]))
-      .map((x) => x[1]);
-    const i = t.cyclePos().mul(n).floor() % n;
-    return nums[i];
-  })._segment(n);
-};
+      .map((x) => x[1])
+    const i = t.cyclePos().mul(n).floor() % n
+    return nums[i]
+  })._segment(n)
+}
 
 const _rearrangeWith = (ipat, n, pat) => {
-  const pats = [...Array(n).keys()].map((i) => pat.zoom(Fraction(i).div(n), Fraction(i + 1).div(n)));
-  return ipat.fmap((i) => pats[i].repeatCycles(n)._fast(n)).innerJoin();
-};
+  const pats = [...Array(n).keys()].map((i) => pat.zoom(Fraction(i).div(n), Fraction(i + 1).div(n)))
+  return ipat.fmap((i) => pats[i].repeatCycles(n)._fast(n)).innerJoin()
+}
 
 /**
  * Slices a pattern into the given number of parts, then plays those parts in random order.
@@ -286,8 +286,8 @@ const _rearrangeWith = (ipat, n, pat) => {
  * seq("c d e f".shuffle(4), "g").note().sound("piano")
  */
 export const shuffle = register('shuffle', (n, pat) => {
-  return _rearrangeWith(randrun(n), n, pat);
-});
+  return _rearrangeWith(randrun(n), n, pat)
+})
 
 /**
  * Slices a pattern into the given number of parts, then plays those parts at random. Similar to `shuffle`,
@@ -299,8 +299,8 @@ export const shuffle = register('shuffle', (n, pat) => {
  * seq("c d e f".scramble(4), "g").note().sound("piano")
  */
 export const scramble = register('scramble', (n, pat) => {
-  return _rearrangeWith(_irand(n)._segment(n), n, pat);
-});
+  return _rearrangeWith(_irand(n)._segment(n), n, pat)
+})
 
 /**
  * A continuous pattern of random numbers, between 0 and 1.
@@ -311,13 +311,13 @@ export const scramble = register('scramble', (n, pat) => {
  * s("bd*4,hh*8").cutoff(rand.range(500,8000))
  *
  */
-export const rand = signal(timeToRand);
+export const rand = signal(timeToRand)
 /**
  * A continuous pattern of random numbers, between -1 and 1
  */
-export const rand2 = rand.toBipolar();
+export const rand2 = rand.toBipolar()
 
-export const _brandBy = (p) => rand.fmap((x) => x < p);
+export const _brandBy = (p) => rand.fmap((x) => x < p)
 
 /**
  * A continuous pattern of 0 or 1 (binary random), with a probability for the value being 1
@@ -327,7 +327,7 @@ export const _brandBy = (p) => rand.fmap((x) => x < p);
  * @example
  * s("hh*10").pan(brandBy(0.2))
  */
-export const brandBy = (pPat) => reify(pPat).fmap(_brandBy).innerJoin();
+export const brandBy = (pPat) => reify(pPat).fmap(_brandBy).innerJoin()
 
 /**
  * A continuous pattern of 0 or 1 (binary random)
@@ -336,9 +336,9 @@ export const brandBy = (pPat) => reify(pPat).fmap(_brandBy).innerJoin();
  * @example
  * s("hh*10").pan(brand)
  */
-export const brand = _brandBy(0.5);
+export const brand = _brandBy(0.5)
 
-export const _irand = (i) => rand.fmap((x) => Math.trunc(x * i));
+export const _irand = (i) => rand.fmap((x) => Math.trunc(x * i))
 
 /**
  * A continuous pattern of random integers, between 0 and n-1.
@@ -350,19 +350,19 @@ export const _irand = (i) => rand.fmap((x) => Math.trunc(x * i));
  * n(irand(8)).struct("x x*2 x x*3").scale("C:minor")
  *
  */
-export const irand = (ipat) => reify(ipat).fmap(_irand).innerJoin();
+export const irand = (ipat) => reify(ipat).fmap(_irand).innerJoin()
 
 export const __chooseWith = (pat, xs) => {
-  xs = xs.map(reify);
+  xs = xs.map(reify)
   if (xs.length == 0) {
-    return silence;
+    return silence
   }
 
   return pat.range(0, xs.length).fmap((i) => {
-    const key = Math.min(Math.max(Math.floor(i), 0), xs.length - 1);
-    return xs[key];
-  });
-};
+    const key = Math.min(Math.max(Math.floor(i), 0), xs.length - 1)
+    return xs[key]
+  })
+}
 /**
  * Choose from the list of values (or patterns of values) using the given
  * pattern of numbers, which should be in the range of 0..1
@@ -373,8 +373,8 @@ export const __chooseWith = (pat, xs) => {
  * note("c2 g2!2 d2 f1").s(chooseWith(sine.fast(2), ["sawtooth", "triangle", "bd:6"]))
  */
 export const chooseWith = (pat, xs) => {
-  return __chooseWith(pat, xs).outerJoin();
-};
+  return __chooseWith(pat, xs).outerJoin()
+}
 
 /**
  * As with {chooseWith}, but the structure comes from the chosen values, rather
@@ -384,8 +384,8 @@ export const chooseWith = (pat, xs) => {
  * @returns {Pattern}
  */
 export const chooseInWith = (pat, xs) => {
-  return __chooseWith(pat, xs).innerJoin();
-};
+  return __chooseWith(pat, xs).innerJoin()
+}
 
 /**
  * Chooses randomly from the given list of elements.
@@ -394,11 +394,11 @@ export const chooseInWith = (pat, xs) => {
  * @example
  * note("c2 g2!2 d2 f1").s(choose("sine", "triangle", "bd:6"))
  */
-export const choose = (...xs) => chooseWith(rand, xs);
+export const choose = (...xs) => chooseWith(rand, xs)
 
 // todo: doc
-export const chooseIn = (...xs) => chooseInWith(rand, xs);
-export const chooseOut = choose;
+export const chooseIn = (...xs) => chooseInWith(rand, xs)
+export const chooseOut = choose
 
 /**
  * Chooses from the given list of values (or patterns of values), according
@@ -408,8 +408,8 @@ export const chooseOut = choose;
  * @returns {Pattern}
  */
 Pattern.prototype.choose = function (...xs) {
-  return chooseWith(this, xs);
-};
+  return chooseWith(this, xs)
+}
 
 /**
  * As with choose, but the pattern that this method is called on should be
@@ -418,8 +418,8 @@ Pattern.prototype.choose = function (...xs) {
  * @returns {Pattern}
  */
 Pattern.prototype.choose2 = function (...xs) {
-  return chooseWith(this.fromBipolar(), xs);
-};
+  return chooseWith(this.fromBipolar(), xs)
+}
 
 /**
  * Picks one of the elements at random each cycle.
@@ -430,38 +430,40 @@ Pattern.prototype.choose2 = function (...xs) {
  * @example
  * s("bd | hh | sd").fast(8)
  */
-export const chooseCycles = (...xs) => chooseInWith(rand.segment(1), xs);
+export const chooseCycles = (...xs) => chooseInWith(rand.segment(1), xs)
 
-export const randcat = chooseCycles;
+export const randcat = chooseCycles
 
 const _wchooseWith = function (pat, ...pairs) {
   // A list of patterns of values
-  const values = pairs.map((pair) => reify(pair[0]));
+  const values = pairs.map((pair) => reify(pair[0]))
 
   // A list of weight patterns
-  const weights = [];
+  const weights = []
 
-  let total = pure(0);
+  let total = pure(0)
   for (const pair of pairs) {
     // 'add' accepts either values or patterns of values here, so no need
     // to explicitly reify
-    total = total.add(pair[1]);
+    total = total.add(pair[1])
     // accumulate our list of weight patterns
-    weights.push(total);
+    weights.push(total)
   }
   // a pattern of lists of weights
-  const weightspat = sequenceP(weights);
+  const weightspat = sequenceP(weights)
 
   // Takes a number from 0-1, returns a pattern of patterns of values
   const match = function (r) {
-    const findpat = total.mul(r);
-    return weightspat.fmap((weights) => (find) => values[weights.findIndex((x) => x > find, weights)]).appLeft(findpat);
-  };
+    const findpat = total.mul(r)
+    return weightspat
+      .fmap((weights) => (find) => values[weights.findIndex((x) => x > find, weights)])
+      .appLeft(findpat)
+  }
   // This returns a pattern of patterns.. The innerJoin is in wchooseCycles
-  return pat.bind(match);
-};
+  return pat.bind(match)
+}
 
-const wchooseWith = (...args) => _wchooseWith(...args).outerJoin();
+const wchooseWith = (...args) => _wchooseWith(...args).outerJoin()
 
 /**
  * Chooses randomly from the given list of elements by giving a probability to each element
@@ -470,7 +472,7 @@ const wchooseWith = (...args) => _wchooseWith(...args).outerJoin();
  * @example
  * note("c2 g2!2 d2 f1").s(wchoose(["sine",10], ["triangle",1], ["bd:6",1]))
  */
-export const wchoose = (...pairs) => wchooseWith(rand, ...pairs);
+export const wchoose = (...pairs) => wchooseWith(rand, ...pairs)
 
 /**
  * Picks one of the elements at random each cycle by giving a probability to each element
@@ -484,39 +486,39 @@ export const wchoose = (...pairs) => wchooseWith(rand, ...pairs);
  * // The probability can itself be a pattern
  * wchooseCycles(["bd(3,8)","<5 0>"], ["hh hh hh",3]).fast(4).s()
  */
-export const wchooseCycles = (...pairs) => _wchooseWith(rand.segment(1), ...pairs).innerJoin();
+export const wchooseCycles = (...pairs) => _wchooseWith(rand.segment(1), ...pairs).innerJoin()
 
-export const wrandcat = wchooseCycles;
+export const wrandcat = wchooseCycles
 
 function _perlin(t) {
-  let ta = Math.floor(t);
-  let tb = ta + 1;
-  const smootherStep = (x) => 6.0 * x ** 5 - 15.0 * x ** 4 + 10.0 * x ** 3;
-  const interp = (x) => (a) => (b) => a + smootherStep(x) * (b - a);
-  const v = interp(t - ta)(timeToRand(ta))(timeToRand(tb));
-  return v;
+  let ta = Math.floor(t)
+  let tb = ta + 1
+  const smootherStep = (x) => 6.0 * x ** 5 - 15.0 * x ** 4 + 10.0 * x ** 3
+  const interp = (x) => (a) => (b) => a + smootherStep(x) * (b - a)
+  const v = interp(t - ta)(timeToRand(ta))(timeToRand(tb))
+  return v
 }
 export const perlinWith = (tpat) => {
-  return tpat.fmap(_perlin);
-};
+  return tpat.fmap(_perlin)
+}
 
 function _berlin(t) {
-  const prevRidgeStartIndex = Math.floor(t);
-  const nextRidgeStartIndex = prevRidgeStartIndex + 1;
+  const prevRidgeStartIndex = Math.floor(t)
+  const nextRidgeStartIndex = prevRidgeStartIndex + 1
 
-  const prevRidgeBottomPoint = timeToRand(prevRidgeStartIndex);
-  const nextRidgeTopPoint = timeToRand(nextRidgeStartIndex) + prevRidgeBottomPoint;
+  const prevRidgeBottomPoint = timeToRand(prevRidgeStartIndex)
+  const nextRidgeTopPoint = timeToRand(nextRidgeStartIndex) + prevRidgeBottomPoint
 
-  const currentPercent = (t - prevRidgeStartIndex) / (nextRidgeStartIndex - prevRidgeStartIndex);
+  const currentPercent = (t - prevRidgeStartIndex) / (nextRidgeStartIndex - prevRidgeStartIndex)
   const interp = (a, b, t) => {
-    return a + (b - a) * t;
-  };
-  return interp(prevRidgeBottomPoint, nextRidgeTopPoint, currentPercent) / 2;
+    return a + (b - a) * t
+  }
+  return interp(prevRidgeBottomPoint, nextRidgeTopPoint, currentPercent) / 2
 }
 
 export const berlinWith = (tpat) => {
-  return tpat.fmap(_berlin);
-};
+  return tpat.fmap(_berlin)
+}
 
 /**
  * Generates a continuous pattern of [perlin noise](https://en.wikipedia.org/wiki/Perlin_noise), in the range 0..1.
@@ -527,7 +529,7 @@ export const berlinWith = (tpat) => {
  * s("bd*4,hh*8").cutoff(perlin.range(500,8000))
  *
  */
-export const perlin = perlinWith(time.fmap((v) => Number(v)));
+export const perlin = perlinWith(time.fmap((v) => Number(v)))
 
 /**
  * Generates a continuous pattern of [berlin noise](conceived by Jame Coyne and Jade Rowland as a joke but turned out to be surprisingly cool and useful,
@@ -539,14 +541,14 @@ export const perlin = perlinWith(time.fmap((v) => Number(v)));
  * n("0!16".add(berlin.fast(4).mul(14))).scale("d:minor")
  *
  */
-export const berlin = berlinWith(time.fmap((v) => Number(v)));
+export const berlin = berlinWith(time.fmap((v) => Number(v)))
 
 export const degradeByWith = register(
   'degradeByWith',
   (withPat, x, pat) => pat.fmap((a) => (_) => a).appLeft(withPat.filterValues((v) => v > x)),
   true,
-  true,
-);
+  true
+)
 
 /**
  * Randomly removes events from the pattern by a given amount.
@@ -568,11 +570,11 @@ export const degradeByWith = register(
 export const degradeBy = register(
   'degradeBy',
   function (x, pat) {
-    return pat._degradeByWith(rand, x);
+    return pat._degradeByWith(rand, x)
   },
   true,
-  true,
-);
+  true
+)
 
 /**
  *
@@ -586,7 +588,7 @@ export const degradeBy = register(
  * @example
  * s("[hh?]*8")
  */
-export const degrade = register('degrade', (pat) => pat._degradeBy(0.5), true, true);
+export const degrade = register('degrade', (pat) => pat._degradeBy(0.5), true, true)
 
 /**
  * Inverse of `degradeBy`: Randomly removes events from the pattern by a given amount.
@@ -611,12 +613,12 @@ export const undegradeBy = register(
   function (x, pat) {
     return pat._degradeByWith(
       rand.fmap((r) => 1 - r),
-      x,
-    );
+      x
+    )
   },
   true,
-  true,
-);
+  true
+)
 
 /**
  * Inverse of `degrade`: Randomly removes 50% of events from the pattern. Shorthand for `.undegradeBy(0.5)`
@@ -633,7 +635,7 @@ export const undegradeBy = register(
  *   x => x.undegrade().pan(1)
  * )
  */
-export const undegrade = register('undegrade', (pat) => pat._undegradeBy(0.5), true, true);
+export const undegrade = register('undegrade', (pat) => pat._undegradeBy(0.5), true, true)
 
 /**
  *
@@ -652,8 +654,8 @@ export const undegrade = register('undegrade', (pat) => pat._undegradeBy(0.5), t
 export const sometimesBy = register('sometimesBy', function (patx, func, pat) {
   return reify(patx)
     .fmap((x) => stack(pat._degradeBy(x), func(pat._undegradeBy(1 - x))))
-    .innerJoin();
-});
+    .innerJoin()
+})
 
 /**
  *
@@ -667,8 +669,8 @@ export const sometimesBy = register('sometimesBy', function (patx, func, pat) {
  * s("hh*8").sometimes(x=>x.speed("0.5"))
  */
 export const sometimes = register('sometimes', function (func, pat) {
-  return pat._sometimesBy(0.5, func);
-});
+  return pat._sometimesBy(0.5, func)
+})
 
 /**
  *
@@ -689,11 +691,11 @@ export const someCyclesBy = register('someCyclesBy', function (patx, func, pat) 
     .fmap((x) =>
       stack(
         pat._degradeByWith(rand._segment(1), x),
-        func(pat._degradeByWith(rand.fmap((r) => 1 - r)._segment(1), 1 - x)),
-      ),
+        func(pat._degradeByWith(rand.fmap((r) => 1 - r)._segment(1), 1 - x))
+      )
     )
-    .innerJoin();
-});
+    .innerJoin()
+})
 
 /**
  *
@@ -706,8 +708,8 @@ export const someCyclesBy = register('someCyclesBy', function (patx, func, pat) 
  * s("bd,hh*8").someCycles(x=>x.speed("0.5"))
  */
 export const someCycles = register('someCycles', function (func, pat) {
-  return pat._someCyclesBy(0.5, func);
-});
+  return pat._someCyclesBy(0.5, func)
+})
 
 /**
  *
@@ -720,8 +722,8 @@ export const someCycles = register('someCycles', function (func, pat) {
  * s("hh*8").often(x=>x.speed("0.5"))
  */
 export const often = register('often', function (func, pat) {
-  return pat.sometimesBy(0.75, func);
-});
+  return pat.sometimesBy(0.75, func)
+})
 
 /**
  *
@@ -734,8 +736,8 @@ export const often = register('often', function (func, pat) {
  * s("hh*8").rarely(x=>x.speed("0.5"))
  */
 export const rarely = register('rarely', function (func, pat) {
-  return pat.sometimesBy(0.25, func);
-});
+  return pat.sometimesBy(0.25, func)
+})
 
 /**
  *
@@ -748,8 +750,8 @@ export const rarely = register('rarely', function (func, pat) {
  * s("hh*8").almostNever(x=>x.speed("0.5"))
  */
 export const almostNever = register('almostNever', function (func, pat) {
-  return pat.sometimesBy(0.1, func);
-});
+  return pat.sometimesBy(0.1, func)
+})
 
 /**
  *
@@ -762,8 +764,8 @@ export const almostNever = register('almostNever', function (func, pat) {
  * s("hh*8").almostAlways(x=>x.speed("0.5"))
  */
 export const almostAlways = register('almostAlways', function (func, pat) {
-  return pat.sometimesBy(0.9, func);
-});
+  return pat.sometimesBy(0.9, func)
+})
 
 /**
  *
@@ -776,8 +778,8 @@ export const almostAlways = register('almostAlways', function (func, pat) {
  * s("hh*8").never(x=>x.speed("0.5"))
  */
 export const never = register('never', function (_, pat) {
-  return pat;
-});
+  return pat
+})
 
 /**
  *
@@ -790,20 +792,20 @@ export const never = register('never', function (_, pat) {
  * s("hh*8").always(x=>x.speed("0.5"))
  */
 export const always = register('always', function (func, pat) {
-  return func(pat);
-});
+  return func(pat)
+})
 
 //keyname: string | Array<string>
 //keyname reference: https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values
 export function _keyDown(keyname) {
   if (Array.isArray(keyname) === false) {
-    keyname = [keyname];
+    keyname = [keyname]
   }
-  const keyState = getCurrentKeyboardState();
+  const keyState = getCurrentKeyboardState()
   return keyname.every((x) => {
-    const keyName = keyAlias.get(x) ?? x;
-    return keyState[keyName];
-  });
+    const keyName = keyAlias.get(x) ?? x
+    return keyState[keyName]
+  })
 }
 
 /**
@@ -819,8 +821,8 @@ export function _keyDown(keyname) {
  */
 
 export const whenKey = register('whenKey', function (input, func, pat) {
-  return pat.when(_keyDown(input), func);
-});
+  return pat.when(_keyDown(input), func)
+})
 
 /**
  *
@@ -835,5 +837,5 @@ export const whenKey = register('whenKey', function (input, func, pat) {
  */
 
 export const keyDown = register('keyDown', function (pat) {
-  return pat.fmap(_keyDown);
-});
+  return pat.fmap(_keyDown)
+})

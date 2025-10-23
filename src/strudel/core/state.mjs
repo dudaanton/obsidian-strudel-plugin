@@ -6,23 +6,23 @@ This program is free software: you can redistribute it and/or modify it under th
 
 export class State {
   constructor(span, controls = {}) {
-    this.span = span;
-    this.controls = controls;
+    this.span = span
+    this.controls = controls
   }
 
   // Returns new State with different span
   setSpan(span) {
-    return new State(span, this.controls);
+    return new State(span, this.controls)
   }
 
   withSpan(func) {
-    return this.setSpan(func(this.span));
+    return this.setSpan(func(this.span))
   }
 
   // Returns new State with added controls.
   setControls(controls) {
-    return new State(this.span, { ...this.controls, ...controls });
+    return new State(this.span, { ...this.controls, ...controls })
   }
 }
 
-export default State;
+export default State

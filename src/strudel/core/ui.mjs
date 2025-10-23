@@ -5,28 +5,28 @@ This program is free software: you can redistribute it and/or modify it under th
 */
 
 export const backgroundImage = function (src, animateOptions = {}) {
-  const container = document.getElementById('code');
-  const bg = 'background-image:url(' + src + ');background-size:contain;';
-  container.style = bg;
-  const { className: initialClassName } = container;
+  const container = document.getElementById('code')
+  const bg = 'background-image:url(' + src + ');background-size:contain;'
+  container.style = bg
+  const { className: initialClassName } = container
   const handleOption = (option, value) => {
-    ({
+    ;({
       style: () => (container.style = bg + ';' + value),
       className: () => (container.className = value + ' ' + initialClassName),
-    })[option]();
-  };
-  const funcOptions = Object.entries(animateOptions).filter(([_, v]) => typeof v === 'function');
-  const stringOptions = Object.entries(animateOptions).filter(([_, v]) => typeof v === 'string');
-  stringOptions.forEach(([option, value]) => handleOption(option, value));
+    })[option]()
+  }
+  const funcOptions = Object.entries(animateOptions).filter(([_, v]) => typeof v === 'function')
+  const stringOptions = Object.entries(animateOptions).filter(([_, v]) => typeof v === 'string')
+  stringOptions.forEach(([option, value]) => handleOption(option, value))
 
   if (funcOptions.length === 0) {
-    return;
+    return
   }
-};
+}
 
 export const cleanupUi = () => {
-  const container = document.getElementById('code');
+  const container = document.getElementById('code')
   if (container) {
-    container.style = '';
+    container.style = ''
   }
-};
+}

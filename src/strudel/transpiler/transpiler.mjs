@@ -1,82 +1,87 @@
-import { getLeafLocations } from '@strudel/mini';
-import { parse } from 'acorn';
-import escodegen from 'escodegen';
-import { walk } from 'estree-walker';
+import { getLeafLocations } from '../mini/index.mjs'
+import { parse } from 'acorn'
+import escodegen from 'escodegen'
+import { walk } from 'estree-walker'
 
-let widgetMethods = [];
+let widgetMethods = []
 export function registerWidgetType(type) {
-  widgetMethods.push(type);
+  widgetMethods.push(type)
 }
 
-let languages = new Map();
+let languages = new Map()
 // config = { getLocations: (code: string, offset?: number) => number[][] }
 // see mondough.mjs for example use
 // the language will kick in when the code contains a template literal of type
 // example: mondo`...` will use language of type "mondo"
 // TODO: refactor tidal.mjs to use this
 export function registerLanguage(type, config) {
-  languages.set(type, config);
+  languages.set(type, config)
 }
 
 export function transpiler(input, options = {}) {
-  const { wrapAsync = false, addReturn = true, emitMiniLocations = true, emitWidgets = true } = options;
+  const {
+    wrapAsync = false,
+    addReturn = true,
+    emitMiniLocations = true,
+    emitWidgets = true,
+  } = options
 
   let ast = parse(input, {
     ecmaVersion: 2022,
     allowAwaitOutsideFunction: true,
     locations: true,
-  });
+  })
 
-  let miniLocations = [];
+  let miniLocations = []
   const collectMiniLocations = (value, node) => {
-    const minilang = languages.get('minilang');
+    const minilang = languages.get('minilang')
     if (minilang) {
-      const code = `[${value}]`;
-      const locs = minilang.getLocations(code, node.start);
-      miniLocations = miniLocations.concat(locs);
+      const code = `[${value}]`
+      const locs = minilang.getLocations(code, node.start)
+      miniLocations = miniLocations.concat(locs)
     } else {
-      const leafLocs = getLeafLocations(`"${value}"`, node.start, input);
-      miniLocations = miniLocations.concat(leafLocs);
+      const leafLocs = getLeafLocations(`"${value}"`, node.start, input)
+      miniLocations = miniLocations.concat(leafLocs)
     }
-  };
-  let widgets = [];
+  }
+  let widgets = []
 
   walk(ast, {
     enter(node, parent /* , prop, index */) {
       if (isLanguageLiteral(node)) {
-        const { name } = node.tag;
-        const language = languages.get(name);
-        const code = node.quasi.quasis[0].value.raw;
-        const offset = node.quasi.start + 1;
+        const { name } = node.tag
+        const language = languages.get(name)
+        const code = node.quasi.quasis[0].value.raw
+        const offset = node.quasi.start + 1
         if (emitMiniLocations) {
-          const locs = language.getLocations(code, offset);
-          miniLocations = miniLocations.concat(locs);
+          const locs = language.getLocations(code, offset)
+          miniLocations = miniLocations.concat(locs)
         }
-        this.skip();
-        return this.replace(languageWithLocation(name, code, offset));
+        this.skip()
+        return this.replace(languageWithLocation(name, code, offset))
       }
       if (isTemplateLiteral(node, 'tidal')) {
-        const raw = node.quasi.quasis[0].value.raw;
-        const offset = node.quasi.start + 1;
+        const raw = node.quasi.quasis[0].value.raw
+        const offset = node.quasi.start + 1
         if (emitMiniLocations) {
-          const stringLocs = collectHaskellMiniLocations(raw, offset);
-          miniLocations = miniLocations.concat(stringLocs);
+          const stringLocs = collectHaskellMiniLocations(raw, offset)
+          miniLocations = miniLocations.concat(stringLocs)
         }
-        this.skip();
-        return this.replace(tidalWithLocation(raw, offset));
+        this.skip()
+        return this.replace(tidalWithLocation(raw, offset))
       }
       if (isBackTickString(node, parent)) {
-        const { quasis } = node;
-        const { raw } = quasis[0].value;
-        this.skip();
-        emitMiniLocations && collectMiniLocations(raw, node);
-        return this.replace(miniWithLocation(raw, node));
+        const { quasis } = node
+        const { raw } = quasis[0].value
+        this.skip()
+        emitMiniLocations && collectMiniLocations(raw, node)
+        return this.replace(miniWithLocation(raw, node))
       }
       if (isStringWithDoubleQuotes(node)) {
-        const { value } = node;
-        this.skip();
-        emitMiniLocations && collectMiniLocations(value, node);
-        return this.replace(miniWithLocation(value, node));
+        const { value } = node
+        this.skip()
+        emitMiniLocations && collectMiniLocations(value, node)
+        return this.replace(miniWithLocation(value, node))
       }
       if (isSliderFunction(node)) {
         emitWidgets &&
@@ -88,82 +93,84 @@ export function transpiler(input, options = {}) {
             max: node.arguments[2]?.value ?? 1,
             step: node.arguments[3]?.value,
             type: 'slider',
-          });
-        return this.replace(sliderWithLocation(node));
+          })
+        return this.replace(sliderWithLocation(node))
       }
       if (isWidgetMethod(node)) {
-        const type = node.callee.property.name;
-        const index = widgets.filter((w) => w.type === type).length;
+        const type = node.callee.property.name
+        const index = widgets.filter((w) => w.type === type).length
         const widgetConfig = {
           to: node.end,
           index,
           type,
           id: options.id,
-        };
-        emitWidgets && widgets.push(widgetConfig);
-        return this.replace(widgetWithLocation(node, widgetConfig));
+        }
+        emitWidgets && widgets.push(widgetConfig)
+        return this.replace(widgetWithLocation(node, widgetConfig))
       }
       if (isBareSamplesCall(node, parent)) {
-        return this.replace(withAwait(node));
+        return this.replace(withAwait(node))
       }
       if (isLabelStatement(node)) {
-        return this.replace(labelToP(node));
+        return this.replace(labelToP(node))
       }
     },
-    leave(node, parent, prop, index) {},
-  });
+    leave(node, parent, prop, index) {
+      return
+    },
+  })
 
-  let { body } = ast;
+  let { body } = ast
 
   if (!body.length) {
-    console.warn('empty body -> fallback to silence');
+    console.warn('empty body -> fallback to silence')
     body.push({
       type: 'ExpressionStatement',
       expression: {
         type: 'Identifier',
         name: 'silence',
       },
-    });
+    })
   } else if (!body?.[body.length - 1]?.expression) {
-    throw new Error('unexpected ast format without body expression');
+    throw new Error('unexpected ast format without body expression')
   }
 
   // add return to last statement
   if (addReturn) {
-    const { expression } = body[body.length - 1];
+    const { expression } = body[body.length - 1]
     body[body.length - 1] = {
       type: 'ReturnStatement',
       argument: expression,
-    };
+    }
   }
-  let output = escodegen.generate(ast);
+  let output = escodegen.generate(ast)
   if (wrapAsync) {
-    output = `(async ()=>{${output}})()`;
+    output = `(async ()=>{${output}})()`
   }
   if (!emitMiniLocations) {
-    return { output };
+    return { output }
   }
-  return { output, miniLocations, widgets };
+  return { output, miniLocations, widgets }
 }
 
 function isStringWithDoubleQuotes(node, locations, code) {
   if (node.type !== 'Literal') {
-    return false;
+    return false
   }
-  return node.raw[0] === '"';
+  return node.raw[0] === '"'
 }
 
 function isBackTickString(node, parent) {
-  return node.type === 'TemplateLiteral' && parent.type !== 'TaggedTemplateExpression';
+  return node.type === 'TemplateLiteral' && parent.type !== 'TaggedTemplateExpression'
 }
 
 function miniWithLocation(value, node) {
-  const { start: fromOffset } = node;
+  const { start: fromOffset } = node
 
-  const minilang = languages.get('minilang');
-  let name = 'm';
+  const minilang = languages.get('minilang')
+  let name = 'm'
   if (minilang && minilang.name) {
-    name = minilang.name; // name is expected to be exported from the package of the minilang
+    name = minilang.name // name is expected to be exported from the package of the minilang
   }
 
   return {
@@ -177,30 +184,30 @@ function miniWithLocation(value, node) {
       { type: 'Literal', value: fromOffset },
     ],
     optional: false,
-  };
+  }
 }
 
 // these functions are connected to @strudel/codemirror -> slider.mjs
 // maybe someday there will be pluggable transpiler functions, then move this there
 function isSliderFunction(node) {
-  return node.type === 'CallExpression' && node.callee.name === 'slider';
+  return node.type === 'CallExpression' && node.callee.name === 'slider'
 }
 
 function isWidgetMethod(node) {
-  return node.type === 'CallExpression' && widgetMethods.includes(node.callee.property?.name);
+  return node.type === 'CallExpression' && widgetMethods.includes(node.callee.property?.name)
 }
 
 function sliderWithLocation(node) {
-  const id = 'slider_' + node.arguments[0].start; // use loc of first arg for id
+  const id = 'slider_' + node.arguments[0].start // use loc of first arg for id
   // add loc as identifier to first argument
   // the sliderWithID function is assumed to be sliderWithID(id, value, min?, max?)
   node.arguments.unshift({
     type: 'Literal',
     value: id,
     raw: id,
-  });
-  node.callee.name = 'sliderWithID';
-  return node;
+  })
+  node.callee.name = 'sliderWithID'
+  return node
 }
 
 export function getWidgetID(widgetConfig) {
@@ -209,34 +216,38 @@ export function getWidgetID(widgetConfig) {
   // that means, if we use the index index of line position as id, less garbage is generated
   // return `widget_${widgetConfig.to}`; // more gargabe
   //return `widget_${widgetConfig.index}_${widgetConfig.to}`; // also more garbage
-  return `${widgetConfig.id || ''}_widget_${widgetConfig.type}_${widgetConfig.index}`; // less garbage
+  return `${widgetConfig.id || ''}_widget_${widgetConfig.type}_${widgetConfig.index}` // less garbage
 }
 
 function widgetWithLocation(node, widgetConfig) {
-  const id = getWidgetID(widgetConfig);
+  const id = getWidgetID(widgetConfig)
   // add loc as identifier to first argument
   // the sliderWithID function is assumed to be sliderWithID(id, value, min?, max?)
   node.arguments.unshift({
     type: 'Literal',
     value: id,
     raw: id,
-  });
-  return node;
+  })
+  return node
 }
 
 function isBareSamplesCall(node, parent) {
-  return node.type === 'CallExpression' && node.callee.name === 'samples' && parent.type !== 'AwaitExpression';
+  return (
+    node.type === 'CallExpression' &&
+    node.callee.name === 'samples' &&
+    parent.type !== 'AwaitExpression'
+  )
 }
 
 function withAwait(node) {
   return {
     type: 'AwaitExpression',
     argument: node,
-  };
+  }
 }
 
 function isLabelStatement(node) {
-  return node.type === 'LabeledStatement';
+  return node.type === 'LabeledStatement'
 }
 
 // converts label expressions to p calls: "x: y" to "y.p('x')"
@@ -262,11 +273,11 @@ function labelToP(node) {
         },
       ],
     },
-  };
+  }
 }
 
 function isLanguageLiteral(node) {
-  return node.type === 'TaggedTemplateExpression' && languages.has(node.tag.name);
+  return node.type === 'TaggedTemplateExpression' && languages.has(node.tag.name)
 }
 
 // tidal highlighting
@@ -274,7 +285,7 @@ function isLanguageLiteral(node) {
 // but maybe it's the only way
 
 function isTemplateLiteral(node, value) {
-  return node.type === 'TaggedTemplateExpression' && node.tag.name === value;
+  return node.type === 'TaggedTemplateExpression' && node.tag.name === value
 }
 
 function collectHaskellMiniLocations(haskellCode, offset) {
@@ -282,20 +293,20 @@ function collectHaskellMiniLocations(haskellCode, offset) {
     .split('')
     .reduce((acc, char, i) => {
       if (char !== '"') {
-        return acc;
+        return acc
       }
       if (!acc.length || acc[acc.length - 1].length > 1) {
-        acc.push([i + 1]);
+        acc.push([i + 1])
       } else {
-        acc[acc.length - 1].push(i);
+        acc[acc.length - 1].push(i)
       }
-      return acc;
+      return acc
     }, [])
     .map(([start, end]) => {
-      const miniString = haskellCode.slice(start, end);
-      return getLeafLocations(`"${miniString}"`, offset + start - 1);
+      const miniString = haskellCode.slice(start, end)
+      return getLeafLocations(`"${miniString}"`, offset + start - 1)
     })
-    .flat();
+    .flat()
 }
 
 function tidalWithLocation(value, offset) {
@@ -310,7 +321,7 @@ function tidalWithLocation(value, offset) {
       { type: 'Literal', value: offset },
     ],
     optional: false,
-  };
+  }
 }
 
 function languageWithLocation(name, value, offset) {
@@ -325,5 +336,5 @@ function languageWithLocation(name, value, offset) {
       { type: 'Literal', value: offset },
     ],
     optional: false,
-  };
+  }
 }
