@@ -3,9 +3,10 @@ import { App } from 'obsidian'
 import { ref } from 'vue'
 import { EditorView } from '@codemirror/view'
 import { MarkdownView, WorkspaceLeaf } from 'obsidian'
-import { initStrudel as init, recalculateMiniLocations } from '@/strudel/init.js'
+import { initStrudel as init, samples } from '@/strudel/init.js'
 import { highlightMiniLocations, updateMiniLocations } from '@/editor/StrudelHighlight'
 import { Drawer, drawPianoroll } from '@/strudel/draw/index.mjs'
+import { StrudelConfig } from '@/services/StrudelConfig'
 
 export class GlobalStore {
   private static instance: GlobalStore
@@ -122,6 +123,7 @@ export class GlobalStore {
         }
       },
     })
+    samples(StrudelConfig.getInstance().samplesToPreload)
     this.strudelInitialized.value = true
 
     this.drawer = new Drawer(

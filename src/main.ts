@@ -7,11 +7,10 @@ import VueEntry from './App.vue'
 import { StrudelConfig } from './services/StrudelConfig'
 import { strudelStateField } from './editor/StrudelPlugin'
 import { highlightExtension } from './editor/StrudelHighlight'
+import { samples } from '@/strudel/init.js'
 
 import './editor/SyntaxHighlighting.js'
 import { createStrudelBlock } from './commands/createStrudelBlock'
-
-export interface StrudelSettings {}
 
 interface PluginData {}
 
@@ -118,6 +117,24 @@ class StrudelSettingTab extends PluginSettingTab {
           StrudelConfig.getInstance().saveToCache = value
           await this.plugin.saveSettings()
         })
+      )
+
+    new Setting(containerEl)
+      .setName('Samples to preload')
+      .setDesc('URLs of audio samples to preload on startup for faster access.')
+      .addTextArea((text) =>
+        text
+          .setPlaceholder('Enter sample URLs, one per line')
+          .setValue(StrudelConfig.getInstance().samplesToPreload.join('\n') || '')
+          .onChange(async (value) => {
+            StrudelConfig.getInstance().samplesToPreload = value
+              .split('\n')
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0)
+            await this.plugin.saveSettings()
+
+            samples(StrudelConfig.getInstance().samplesToPreload)
+          })
       )
   }
 }

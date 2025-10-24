@@ -3,6 +3,7 @@ import { normalizePath } from '@/helpers/pathHelpers'
 interface StrudelConfigData {
   cacheDir: string | null
   saveToCache: boolean
+  samplesToPreload: string[]
 }
 
 export class StrudelConfig {
@@ -10,6 +11,14 @@ export class StrudelConfig {
 
   public cacheDir: string | null = null
   public saveToCache = true
+  public samplesToPreload: string[] = [
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/tidal-drum-machines.json',
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/piano.json',
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/Dirt-Samples.json',
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/EmuSP12.json',
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/vcsl.json',
+    'https://raw.githubusercontent.com/felixroos/dough-samples/main/mridangam.json',
+  ]
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
@@ -26,6 +35,7 @@ export class StrudelConfig {
     if (data.saveToCache !== undefined) {
       this.saveToCache = data.saveToCache
     }
+    this.samplesToPreload = data.samplesToPreload ? [...data.samplesToPreload] : []
   }
 
   public getCacheDir(): string | null {
@@ -36,6 +46,7 @@ export class StrudelConfig {
     return {
       cacheDir: this.cacheDir,
       saveToCache: this.saveToCache,
+      samplesToPreload: this.samplesToPreload,
     }
   }
 }

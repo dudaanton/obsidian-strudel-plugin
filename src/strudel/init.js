@@ -10,10 +10,7 @@ import * as superdough from './superdough/index.mjs'
 import * as supradough from './supradough/index.mjs'
 import * as xen from './xen/index.mjs'
 
-import { Pattern } from './core/pattern.mjs'
-// import { evalScope, setTime } from './core/clockworker.js'
 import { initAudioOnFirstClick, webaudioRepl } from './webaudio/index.mjs'
-// import { registerSoundfonts } from './soundfonts/index.mjs';
 import { evaluate as _evaluate } from './transpiler/index.mjs'
 import { miniAllStrings } from './mini/index.mjs'
 
@@ -22,8 +19,6 @@ export async function initStrudel(options = {}) {
   options.miniAllStrings !== false && miniAllStrings()
   const repl = webaudioRepl({ ...options, transpiler: transpiler.transpiler })
 
-  await superdough.samples('github:tidalcycles/dirt-samples')
-
   superdough.registerSynthSounds()
   soundfonts.registerSoundfonts()
 
@@ -31,15 +26,12 @@ export async function initStrudel(options = {}) {
 
   setTimeout(() => repl.scheduler.now())
 
-  // Pattern.prototype.play = function () {
-  //   repl.setPattern(this, true)
-  //   return this
-  // }
-
   return repl
 }
 
-export function recalculateMiniLocations(code) {
-  const { miniLocations } = transpiler.transpiler(code)
-  return miniLocations
+export function samples(urls) {
+  for (const url of urls) {
+    superdough.samples(url)
+  }
 }
+
