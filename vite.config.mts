@@ -78,7 +78,7 @@ export default defineConfig(async ({ mode }) => {
         output: {
           assetFileNames: (assetInfo) => {
             if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-              return 'main.css'
+              return 'styles.css'
             }
             return '[name].[ext]'
           },

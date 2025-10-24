@@ -44,7 +44,7 @@ echo "Ensured target directory exists: $TARGET_DIR"
 cp -X "$BUILD_DIR/main.js" "$TARGET_DIR/main.js"
 echo "Copied main.js"
 
-cp -X "$BUILD_DIR/main.css" "$TARGET_DIR/styles.css"
+cp -X "$BUILD_DIR/styles.css" "$TARGET_DIR/styles.css"
 echo "Copied styles.css"
 
 cp -X "$PLUGIN_DIR/manifest.json" "$TARGET_DIR/manifest.json"
