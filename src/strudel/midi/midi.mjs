@@ -8,6 +8,7 @@ import * as _WebMidi from 'webmidi'
 import { Pattern, getEventOffsetMs, isPattern, logger, ref } from '../core/index.mjs'
 import { noteToMidi, getControlName } from '../core/index.mjs'
 import { Note } from 'webmidi'
+import { CacheService } from '../../services/CacheService'
 
 // if you use WebMidi from outside of this package, make sure to import that instance:
 export const { WebMidi } = _WebMidi
@@ -152,12 +153,24 @@ let loadCache = {}
  * .midi()
  */
 export async function midimaps(map) {
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
   if (typeof map === 'string') {
     if (map.startsWith('github:')) {
       map = githubPath(map, 'midimap.json')
     }
     if (!loadCache[map]) {
-      loadCache[map] = fetch(map).then((res) => res.json())
+      loadCache[map] = cacheService.loadCacheFile(`${cacheKey}.json`, false).then((data) => {
+        if (data) {
+          return data
+        }
+        return fetch(map).then(async (res) => {
+          const data = await res.json()
+          cacheService.saveCacheFile(`${cacheKey}.json`, data, false)
+          return data
+        })
+      })
     }
     map = await loadCache[map]
   }

@@ -8,8 +8,11 @@ import {
   getVibratoOscillator,
 } from '../webaudio/index.mjs'
 import gm from './gm.mjs'
+import { CacheService } from '../../services/CacheService'
 
-let defaultSoundfontUrl = 'https://felixroos.github.io/webaudiofontdata/sound'
+// Change url to updated repo with JSON soundfont data
+let defaultSoundfontUrl =
+  'https://raw.githubusercontent.com/dudaanton/webaudiofontdata/master/sound'
 let soundfontUrl = defaultSoundfontUrl
 
 export function setSoundfontUrl(value) {
@@ -21,14 +24,27 @@ async function loadFont(name) {
   if (loadCache[name]) {
     return loadCache[name]
   }
+
+  const fileName = `${name}.json`
+
+  const cacheService = new CacheService()
+
+  const cachedData = await cacheService.loadCacheFile(fileName, false)
+  if (cachedData) return cachedData
+
   const load = async () => {
     // TODO: make soundfont source configurable
-    const url = `${soundfontUrl}/${name}.js`
-    const preset = await fetch(url).then((res) => res.text())
-    let [_, data] = preset.split('={')
-    return eval('{' + data)
+    const url = `${soundfontUrl}/${fileName}`
+    const data = await fetch(url).then((res) => res.json())
+    return data
   }
   loadCache[name] = load()
+
+  loadCache[name].then(async (data) => {
+    await cacheService.saveCacheFile(fileName, data, false)
+    return data
+  })
+
   return loadCache[name]
 }
 
@@ -95,7 +111,7 @@ export async function getFontPitch(name, pitch, ac) {
 }
 
 function findZone(preset, pitch) {
-  return preset.find((zone) => {
+  return preset.zones.find((zone) => {
     return zone.keyRangeLow <= pitch && zone.keyRangeHigh + 1 >= pitch
   })
 }

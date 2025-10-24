@@ -13,6 +13,7 @@ import {
   webAudioTimeout,
 } from './helpers.mjs'
 import { logger } from './logger.mjs'
+import { CacheService } from '../../services/CacheService'
 
 export const Warpmode = Object.freeze({
   NONE: 0,
@@ -109,23 +110,46 @@ async function decodeAtNativeRate(arr) {
 
 const loadCache = {}
 const loadBuffer = (url, label) => {
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
   url = url.replace('#', '%23')
   if (!loadCache[url]) {
     logger(`[wavetable] load table ${label}..`, 'load-table', { url })
     const timestamp = Date.now()
-    loadCache[url] = fetch(url)
-      .then((res) => res.arrayBuffer())
-      .then(async (res) => {
+
+    loadCache[url] = new Promise(async (resolve) => {
+      const cachedData = await cacheService.loadCacheFile(cacheKey, true)
+      if (cachedData) {
         const took = Date.now() - timestamp
-        const size = humanFileSize(res.byteLength)
+        const size = humanFileSize(cachedData.byteLength)
         logger(
           `[wavetable] load table ${label}... done! loaded ${size} in ${took}ms`,
           'loaded-table',
           { url }
         )
-        const decoded = await decodeAtNativeRate(res)
-        return decoded
-      })
+        // don't realy know why but decoding immediately after fetch seems to cause error on playback start
+        await new Promise((r) => setTimeout(r, 100))
+        const decoded = await decodeAtNativeRate(cachedData)
+        resolve(decoded)
+      } else {
+        fetch(url)
+          .then((res) => res.arrayBuffer())
+          .then(async (res) => {
+            await cacheService.saveCacheFile(cacheKey, res, true)
+
+            const took = Date.now() - timestamp
+            const size = humanFileSize(res.byteLength)
+            logger(
+              `[wavetable] load table ${label}... done! loaded ${size} in ${took}ms`,
+              'loaded-table',
+              { url }
+            )
+            const decoded = await decodeAtNativeRate(res)
+            resolve(decoded)
+          })
+      }
+    })
   }
   return loadCache[url]
 }
@@ -193,6 +217,15 @@ export function registerWaveTable(key, tables, params) {
  */
 export const tables = async (url, frameLen, json, options = {}) => {
   if (json !== undefined) return _processTables(json, url, frameLen)
+
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
+  const data = await cacheService.loadCacheFile(`${cacheKey}.json`, false)
+  if (data) {
+    return _processTables(data, url, frameLen, options)
+  }
+
   if (url.startsWith('github:')) {
     url = githubPath(url, 'strudel.json')
   }
@@ -209,6 +242,10 @@ export const tables = async (url, frameLen, json, options = {}) => {
   }
   return fetch(url)
     .then((res) => res.json())
+    .then((json) => {
+      cacheService.saveCacheFile(`${cacheKey}.json`, json, false)
+      return json
+    })
     .then((json) => _processTables(json, url, frameLen, options))
     .catch((error) => {
       console.error(error)

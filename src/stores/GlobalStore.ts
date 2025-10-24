@@ -98,7 +98,6 @@ export class GlobalStore {
         this.drawer.invalidate(this.repl.scheduler)
       },
       onToggle: (started: boolean) => {
-        console.log('onToggle', started)
         if (started) {
           this.currentBlock.value.playbackStarted()
           this.drawer.start(this.repl.scheduler)
@@ -114,10 +113,8 @@ export class GlobalStore {
           this.drawer.stop()
 
           const editor = this.getActiveEditor()
-          console.log('playback stopped')
           if (editor) {
             this.currentBlock.value?.playbackStopped()
-            console.log('clearing mini locations')
             updateMiniLocations(editor, [], 0)
           }
 
@@ -125,7 +122,6 @@ export class GlobalStore {
         }
       },
     })
-    console.log(this.repl)
     this.strudelInitialized.value = true
 
     this.drawer = new Drawer(

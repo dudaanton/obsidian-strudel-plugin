@@ -1,3 +1,4 @@
+import { CacheService } from '../../services/CacheService'
 import { Pattern } from '../core/index.mjs'
 import { connectToDestination, getAudioContext, getWorklet } from '../superdough/index.mjs'
 
@@ -62,6 +63,14 @@ function githubPath(base, subpath = '') {
   return `https://raw.githubusercontent.com/${path}/${subpath}`
 }
 export async function fetchSampleMap(url) {
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
+  const data = await cacheService.loadCacheFile(`${cacheKey}.json`, false)
+  if (data) {
+    return [data, data._base || 'obsidian:']
+  }
+
   if (url.startsWith('github:')) {
     url = githubPath(url, 'strudel.json')
   }
@@ -83,6 +92,13 @@ export async function fetchSampleMap(url) {
     }
     url = `https://shabda.ndre.gr/speech/${words}.json?gender=${gender}&language=${language}&strudel=1'`
   }
+  if (url.startsWith('./')) {
+    const json = await cacheService.loadCacheFile(`${cacheKey}.json`, false)
+
+    if (json) {
+      return [json, json._base || 'obsidian:']
+    }
+  }
   if (typeof fetch !== 'function') {
     // not a browser
     return
@@ -98,15 +114,27 @@ export async function fetchSampleMap(url) {
       console.error(error)
       throw new Error(`error loading "${url}"`)
     })
+
+  await cacheService.saveCacheFile(`${cacheKey}.json`, json, false)
   return [json, json._base || base]
 }
 
 // for some reason, only piano and flute work.. is it because mp3??
 
 async function fetchSample(url) {
-  const buffer = await fetch(url)
-    .then((res) => res.arrayBuffer())
-    .then((buf) => getAudioContext().decodeAudioData(buf))
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
+  const cachedData = await cacheService.loadCacheFile(cacheKey, true)
+
+  const buffer = cachedData
+    ? await getAudioContext().decodeAudioData(cachedData)
+    : await fetch(url)
+        .then((res) => res.arrayBuffer())
+        .then((buf) => {
+          cacheService.saveCacheFile(cacheKey, buf, true)
+          return getAudioContext().decodeAudioData(buf)
+        })
   let channels = []
   for (let i = 0; i < buffer.numberOfChannels; i++) {
     channels.push(buffer.getChannelData(i))

@@ -9,8 +9,8 @@
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [],
-  "author": "",
-  "license": "MIT",
+  "author": "Anton Duda <anton@duda.dev>",
+  "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@types/js-yaml": "^4.0.9",
@@ -48,7 +48,6 @@
     "estree-walker": "^3.0.3",
     "file-type": "^20.5.0",
     "fraction.js": "^5.3.4",
-    "front-matter": "^4.0.2",
     "lucide-vue-next": "^0.284.0",
     "nanoid": "^5.1.6",
     "nanostores": "^1.0.1",

@@ -38,7 +38,6 @@ watch(
   () => props.strudelBlock,
   (newBlock) => {
     if (isCurrentBlockPlaying.value) {
-      console.log(GlobalStore.getInstance().repl)
       // GlobalStore.getInstance().repl.setCode(newBlock.code)
       // GlobalStore.getInstance().resetMiniLocations()
     }
@@ -84,7 +83,6 @@ const test = () => {
   const view = activeLeaf?.view as MarkdownView
 
   if (activeLeaf && view.editor) {
-    console.log('found editor for strudel block')
     // updateMiniLocations((view.editor as any).cm as EditorView, [])
   }
 }

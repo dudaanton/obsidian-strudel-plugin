@@ -3,6 +3,7 @@ import { registerSound, registerWaveTable } from './index.mjs'
 import { getAudioContext } from './audioContext.mjs'
 import { getADSRValues, getParamADSR, getPitchEnvelope, getVibratoOscillator } from './helpers.mjs'
 import { logger } from './logger.mjs'
+import { CacheService } from '../../services/CacheService'
 
 const bufferCache = {} // string: Promise<ArrayBuffer>
 const loadCache = {} // string: Promise<ArrayBuffer>
@@ -76,24 +77,50 @@ export const getSampleBufferSource = async (hapValue, bank, resolveUrl) => {
 }
 
 export const loadBuffer = (url, ac, s, n = 0) => {
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
   const label = s ? `sound "${s}:${n}"` : 'sample'
   url = url.replace('#', '%23')
   if (!loadCache[url]) {
     logger(`[sampler] load ${label}..`, 'load-sample', { url })
     const timestamp = Date.now()
-    loadCache[url] = fetch(url)
-      .then((res) => res.arrayBuffer())
-      .then(async (res) => {
+
+    loadCache[url] = new Promise(async (resolve) => {
+      const cachedData = await cacheService.loadCacheFile(cacheKey, true)
+      if (cachedData) {
         const took = Date.now() - timestamp
-        const size = humanFileSize(res.byteLength)
-        // const downSpeed = humanFileSize(res.byteLength / took);
-        logger(`[sampler] load ${label}... done! loaded ${size} in ${took}ms`, 'loaded-sample', {
-          url,
-        })
-        const decoded = await ac.decodeAudioData(res)
+        const size = humanFileSize(cachedData.byteLength)
+        logger(
+          `[sampler] load ${label}... done! loaded ${size} from cache in ${took}ms`,
+          'loaded-sample',
+          { url }
+        )
+        const decoded = await ac.decodeAudioData(cachedData)
         bufferCache[url] = decoded
-        return decoded
-      })
+        resolve(decoded)
+      } else {
+        fetch(url)
+          .then((res) => res.arrayBuffer())
+          .then(async (res) => {
+            await cacheService.saveCacheFile(cacheKey, res, true)
+
+            const took = Date.now() - timestamp
+            const size = humanFileSize(res.byteLength)
+            // const downSpeed = humanFileSize(res.byteLength / took);
+            logger(
+              `[sampler] load ${label}... done! loaded ${size} in ${took}ms`,
+              'loaded-sample',
+              {
+                url,
+              }
+            )
+            const decoded = await ac.decodeAudioData(res)
+            bufferCache[url] = decoded
+            resolve(decoded)
+          })
+      }
+    })
   }
   return loadCache[url]
 }
@@ -184,6 +211,14 @@ function getSamplesPrefixHandler(url) {
 }
 
 export async function fetchSampleMap(url) {
+  const cacheService = new CacheService()
+  const cacheKey = cacheService.escapeFileName(url)
+
+  const data = await cacheService.loadCacheFile(`${cacheKey}.json`, false)
+  if (data) {
+    return [data, data._base || 'obsidian:']
+  }
+
   // check if custom prefix handler
   const handler = getSamplesPrefixHandler(url)
   if (handler) {
@@ -211,6 +246,13 @@ export async function fetchSampleMap(url) {
     }
     url = `https://shabda.ndre.gr/speech/${words}.json?gender=${gender}&language=${language}&strudel=1'`
   }
+  if (url.startsWith('./')) {
+    const json = await cacheService.loadCacheFile(`${cacheKey}.json`, false)
+
+    if (json) {
+      return [json, json._base || 'obsidian:']
+    }
+  }
   if (typeof fetch !== 'function') {
     // not a browser
     return
@@ -226,6 +268,8 @@ export async function fetchSampleMap(url) {
       console.error(error)
       throw new Error(`error loading "${url}"`)
     })
+
+  await cacheService.saveCacheFile(`${cacheKey}.json`, json, false)
   return [json, json._base || base]
 }
 
