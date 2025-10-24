@@ -29,8 +29,6 @@ const miniLocations = StateField.define<DecorationSet>({
       locations = locations.map(tr.changes)
     }
 
-    // console.log('miniLocations update', tr.effects)
-
     for (const e of tr.effects) {
       if (e.is(setMiniLocations)) {
         // this is called on eval, with the mini locations obtained from the transpiler
@@ -71,14 +69,11 @@ const visibleMiniLocations = StateField.define<{
         // we can NOT create new marks because the context.locations haven't changed since eval time
         // this is why we need to find a way to update the existing decorations, showing the ones that have an active range
         const haps = new Map()
-        // console.log(e.value, e.value.haps)
         for (const hap of e.value.haps) {
           if (!hap.context?.locations || !hap.whole) {
             continue
           }
           for (const { start, end } of hap.context.locations) {
-            // start += e.value.shift
-            // end += e.value.shift
             const id = `${start}:${end}`
             if (!haps.has(id) || haps.get(id).whole.begin.lt(hap.whole.begin)) {
               haps.set(id, hap)
@@ -101,8 +96,6 @@ const miniLocationHighlights = EditorView.decorations.compute(
     const { haps } = state.field(visibleMiniLocations)
     const builder = new RangeSetBuilder<Decoration>()
 
-    // console.log('highlighting mini locations', haps, shift)
-
     while (iterator.value) {
       const {
         from,
@@ -112,12 +105,9 @@ const miniLocationHighlights = EditorView.decorations.compute(
         },
       } = iterator
 
-      // console.log(haps, id)
-
       if (haps.has(id)) {
         const hap = haps.get(id)
         const colorMod = hap.value?.color ? ` strudel-mark_${hap.value.color}` : ''
-        // const style = hap.value?.markcss || `outline: solid 2px ${color}`
         const classStr = `strudel-mark${colorMod}`
         // Get explicit channels for color values
         /* 
@@ -139,7 +129,6 @@ const miniLocationHighlights = EditorView.decorations.compute(
           from,
           to,
           Decoration.mark({
-            // attributes: { style: `outline: solid 2px rgba(${channels.join(', ')})` },
             attributes: { class: classStr },
           })
         )
@@ -154,11 +143,3 @@ const miniLocationHighlights = EditorView.decorations.compute(
 
 export const highlightExtension = [miniLocations, visibleMiniLocations, miniLocationHighlights]
 
-// export const isPatternHighlightingEnabled = (on, config) => {
-//   on &&
-//     config &&
-//     setTimeout(() => {
-//       updateMiniLocations(config.editor, config.miniLocations)
-//     }, 100)
-//   return on ? Prec.highest(highlightExtension) : []
-// }

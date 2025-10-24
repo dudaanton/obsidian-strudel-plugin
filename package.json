@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite preview",
     "build": "tsc -noEmit -skipLibCheck && vite build",
+    "deploy:test": "bash ./build_and_copy_plugin.sh",
+    "deploy:prod": "bash ./build_and_copy_plugin.sh prod",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
   },
   "keywords": [],

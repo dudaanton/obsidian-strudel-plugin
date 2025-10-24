@@ -5,8 +5,6 @@ export class Strudel {
   public lineFrom: number
   public drawContext: CanvasRenderingContext2D | null = null
 
-  public lineFromWhenPlaybackStarts: number | null = null
-
   constructor(data: { id: string; code: string; filePath: string; lineFrom: number }) {
     this.id = data.id
     this.code = data.code
@@ -23,13 +21,5 @@ export class Strudel {
 
   setDrawContext(ctx: CanvasRenderingContext2D) {
     this.drawContext = ctx
-  }
-
-  playbackStarted() {
-    this.lineFromWhenPlaybackStarts = this.lineFrom
-  }
-
-  playbackStopped() {
-    this.lineFromWhenPlaybackStarts = null
   }
 }

@@ -6,19 +6,21 @@ interface StrudelConfigData {
   samplesToPreload: string[]
 }
 
+const defaultSamples: string[] = [
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/tidal-drum-machines.json',
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/piano.json',
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/Dirt-Samples.json',
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/EmuSP12.json',
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/vcsl.json',
+  'https://raw.githubusercontent.com/felixroos/dough-samples/main/mridangam.json',
+]
+
 export class StrudelConfig {
   private static instance: StrudelConfig
 
   public cacheDir: string | null = null
   public saveToCache = true
-  public samplesToPreload: string[] = [
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/tidal-drum-machines.json',
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/piano.json',
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/Dirt-Samples.json',
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/EmuSP12.json',
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/vcsl.json',
-    'https://raw.githubusercontent.com/felixroos/dough-samples/main/mridangam.json',
-  ]
+  public samplesToPreload: string[] = [...defaultSamples]
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
@@ -30,12 +32,14 @@ export class StrudelConfig {
     return StrudelConfig.instance
   }
 
-  public applySettings(data: StrudelConfigData): void {
-    this.cacheDir = data.cacheDir || null
-    if (data.saveToCache !== undefined) {
+  public applySettings(data?: StrudelConfigData): void {
+    this.cacheDir = data?.cacheDir || null
+    if (data?.saveToCache !== undefined) {
       this.saveToCache = data.saveToCache
     }
-    this.samplesToPreload = data.samplesToPreload ? [...data.samplesToPreload] : []
+    this.samplesToPreload = data?.samplesToPreload
+      ? [...data.samplesToPreload]
+      : [...defaultSamples]
   }
 
   public getCacheDir(): string | null {

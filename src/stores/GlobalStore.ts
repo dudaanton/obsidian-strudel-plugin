@@ -62,33 +62,13 @@ export class GlobalStore {
 
   public drawer: any | null = null
 
-  // public resetMiniLocations() {
-  //   const editor = this.getActiveEditor()
-  //   if (this.currentBlock.value && editor) {
-  //     updateMiniLocations(this.getActiveEditor(), [])
-  //   }
-  // }
-
-  // public recalculateMiniLocations() {
-  //   if (this.currentBlock.value) {
-  //     const locations = recalculateMiniLocations(this.currentBlock.value.code)
-  //     updateMiniLocations(this.getActiveEditor(), locations || [])
-  //   }
-  // }
-
   public async initStrudel() {
     this.repl = await init({
       afterEval: (options: any) => {
-        // console.log('afterEval', options.meta?.miniLocations)
         if (options.meta?.miniLocations) {
           const locations = options.meta.miniLocations
-          // for (const loc of locations) {
-          //   loc[0] = loc[0] + this.currentBlock.lineFrom
-          //   loc[1] = loc[1] + this.currentBlock.lineFrom
-          // }
           const editor = this.getActiveEditor()
           if (this.currentBlock.value && editor) {
-            this.currentBlock.value.playbackStarted()
             updateMiniLocations(editor, locations || [], this.currentBlock.value.lineFrom)
           }
         }
@@ -100,22 +80,12 @@ export class GlobalStore {
       },
       onToggle: (started: boolean) => {
         if (started) {
-          this.currentBlock.value.playbackStarted()
           this.drawer.start(this.repl.scheduler)
-          // if (this.solo) {
-          //   // stop other repls when this one is started
-          //   document.dispatchEvent(
-          //     new CustomEvent('start-repl', {
-          //       detail: this.id,
-          //     })
-          //   )
-          // }
         } else {
           this.drawer.stop()
 
           const editor = this.getActiveEditor()
           if (editor) {
-            this.currentBlock.value?.playbackStopped()
             updateMiniLocations(editor, [], 0)
           }
 
@@ -133,7 +103,6 @@ export class GlobalStore {
           return
         }
 
-        // console.log(this.currentBlock.value.lineFrom)
         const currentFrame = haps.filter((hap: any) => hap.isActive(time))
         highlightMiniLocations(editor, time, currentFrame)
 

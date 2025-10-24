@@ -3,7 +3,7 @@
 	"name": "Strudel REPL",
 	"version": "0.0.1",
 	"minAppVersion": "1.9.14",
-	"description": "",
+	"description": "Live-coding music environment — Strudel REPL integrated into your vault.",
 	"author": "Anton Duda",
 	"isDesktopOnly": false
 }
