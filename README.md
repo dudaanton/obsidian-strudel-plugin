@@ -1,6 +1,8 @@
 # Obsidian Strudel REPL Plugin
 
-![Obsidian Strudel Plugin Demo](assets/demo.mp4)
+<div align="center" width="100%">
+<video src="https://github.com/user-attachments/assets/dd07cb87-bba1-42e4-a8ef-cb55b722de96" width="80%" controls></video>
+</div>
 
 <br>
 
@@ -55,10 +57,10 @@ By default, samples from [felixroos/dough-samples](https://github.com/felixroos/
 
 ## Usage
 
-Simply add a `strudel` code block to any note like this:
-\`\`\`strudel
-// your strudel code
-\`\`\`
+Simply add a `strudel` code block to any note like this:  
+\`\`\`strudel  
+// your strudel code  
+\`\`\`  
 
 A `play` button will appear above it. Try adding some examples from the official website's workshop to see how it works: [https://strudel.cc/workshop/getting-started/](https://strudel.cc/workshop/getting-started/).
 
