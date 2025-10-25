@@ -1,5 +1,5 @@
 import { Strudel } from '@/entities/Strudel'
-import { App } from 'obsidian'
+import { App, Editor } from 'obsidian'
 import { ref } from 'vue'
 import { EditorView } from '@codemirror/view'
 import { MarkdownView, WorkspaceLeaf } from 'obsidian'
@@ -42,7 +42,7 @@ export class GlobalStore {
     const view = activeLeaf?.view as MarkdownView
 
     if (activeLeaf && view.editor) {
-      return (view.editor as any).cm as EditorView
+      return (view.editor as Editor & { cm: EditorView }).cm as EditorView
     }
   }
 

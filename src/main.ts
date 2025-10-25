@@ -23,7 +23,6 @@ export default class StrudelPlugin extends Plugin {
   initializeVue() {
     const rootContainer = document.createElement('div')
     rootContainer.id = 'strudel-vue-root'
-    rootContainer.style.display = 'none'
     document.body.appendChild(rootContainer)
 
     this.vueApp = createApp(VueEntry)
@@ -32,7 +31,7 @@ export default class StrudelPlugin extends Plugin {
   }
 
   getVueApp(): VueApp {
-    return this.vueApp!
+    return this.vueApp
   }
 
   async onload() {

@@ -3,3 +3,7 @@
   background-color: var(--text-selection);
   border-radius: var(--radius-s);
 }
+
+#strudel-vue-root {
+  display: none;
+}
