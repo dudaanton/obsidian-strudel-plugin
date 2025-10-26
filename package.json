@@ -1,6 +1,6 @@
 {
   "name": "strudel-obsidian-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Strudel REPL Obsidian plugin",
   "main": "main.js",
   "scripts": {

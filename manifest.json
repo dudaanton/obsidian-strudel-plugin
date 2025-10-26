@@ -1,7 +1,7 @@
 {
 	"id": "strudel-repl",
 	"name": "Strudel REPL",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"minAppVersion": "1.9.14",
 	"description": "Live-coding music environment — Strudel REPL integrated into your vault.",
 	"author": "Anton Duda",
