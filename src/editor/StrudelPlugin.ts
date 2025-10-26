@@ -14,6 +14,8 @@ const findBlocks = (
 ): StrudelBlockInfo[] => {
   const blocks: StrudelBlockInfo[] = []
 
+  if (state.doc.length === 0) return blocks
+
   if (from === to) return blocks
 
   const startLine = state.doc.lineAt(from)
