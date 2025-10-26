@@ -122,7 +122,7 @@ const buildStrudelDecorations = (state: EditorState): DecorationSet => {
       continue
     }
 
-    const codePosFrom = state.doc.lineAt(block.from).to + 1
+    const codeFrom = state.doc.lineAt(block.from).to + 1
 
     const existingBlock = GlobalStore.getInstance().strudelBlocks.value.find(
       (t) => t.id === block.id
@@ -130,8 +130,9 @@ const buildStrudelDecorations = (state: EditorState): DecorationSet => {
 
     if (existingBlock) {
       existingBlock.code = code
-      existingBlock.posFrom = block.from
-      existingBlock.codePosFrom = codePosFrom
+      existingBlock.from = block.from
+      existingBlock.to = block.to
+      existingBlock.codeFrom = codeFrom
     }
 
     const widget = new StrudelHeaderWidget(
@@ -140,23 +141,22 @@ const buildStrudelDecorations = (state: EditorState): DecorationSet => {
           id: block.id,
           code,
           filePath: currentFile.path,
-          posFrom: block.from,
-          codePosFrom,
+          from: block.from,
+          to: block.to,
+          codeFrom,
         })
     )
 
     widgets.push(widget)
   }
 
-  widgets.sort((a, b) => a.getBlock().posFrom - b.getBlock().posFrom)
-
-  console.log('Building Strudel decorations for widgets:', widgets.length)
+  widgets.sort((a, b) => a.getBlock().from - b.getBlock().from)
 
   for (const widget of widgets) {
     // add widget at the start of the code block
     builder.add(
-      widget.getBlock().posFrom,
-      widget.getBlock().posFrom,
+      widget.getBlock().from,
+      widget.getBlock().from,
       Decoration.widget({
         widget,
         block: true,

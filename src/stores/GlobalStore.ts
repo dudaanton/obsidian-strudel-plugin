@@ -16,7 +16,6 @@ export class GlobalStore {
   public readonly strudelInitialized = ref(false)
 
   public readonly initialized = ref(false)
-  public readonly currentFile = ref(null)
 
   public readonly strudelBlocks = ref<Strudel[]>([])
 
@@ -55,6 +54,20 @@ export class GlobalStore {
     this.isPlaying.value = true
   }
 
+  public playAt(position: number) {
+    const currentFile = this.app.workspace.getActiveViewOfType(MarkdownView)?.file
+
+    if (!currentFile) return
+
+    const strudelBlock = this.strudelBlocks.value.find((block) => {
+      return block.filePath === currentFile.path && position >= block.from && position <= block.to
+    }) as Strudel | undefined
+
+    if (strudelBlock) {
+      this.play(strudelBlock)
+    }
+  }
+
   public stop() {
     this.repl.stop()
     this.isPlaying.value = false
@@ -69,7 +82,7 @@ export class GlobalStore {
           const locations = options.meta.miniLocations
           const editor = this.getActiveEditor()
           if (this.currentBlock.value && editor) {
-            updateMiniLocations(editor, locations || [], this.currentBlock.value.codePosFrom)
+            updateMiniLocations(editor, locations || [], this.currentBlock.value.codeFrom)
           }
         }
 
@@ -150,7 +163,6 @@ export class GlobalStore {
     }
 
     this.initialized.value = false
-    this.currentFile.value = null
     this.strudelBlocks.value.splice(0, this.strudelBlocks.value.length)
   }
 }

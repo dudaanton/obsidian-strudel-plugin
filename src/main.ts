@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian'
+import { App, Editor, Plugin, PluginSettingTab, Setting } from 'obsidian'
 import './styles.css'
 import { GlobalStore } from './stores/GlobalStore'
 import { createApp, App as VueApp } from 'vue'
@@ -49,6 +49,24 @@ export default class StrudelPlugin extends Plugin {
     this.registerEditorExtension(highlightExtension)
 
     GlobalStore.getInstance().initStrudel()
+
+    this.addCommand({
+      id: 'play',
+      name: 'Play strudel block at cursor',
+      editorCallback: (editor: Editor) => {
+        const cursor = editor.getCursor()
+
+        GlobalStore.getInstance().playAt(editor.posToOffset(cursor))
+      },
+    })
+
+    this.addCommand({
+      id: 'stop',
+      name: 'Stop playback',
+      callback: () => {
+        GlobalStore.getInstance().stop()
+      },
+    })
 
     // this.addCommand({
     //   id: 'create-strudel-block',
