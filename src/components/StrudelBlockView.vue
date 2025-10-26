@@ -14,7 +14,7 @@
 <script setup lang="ts">
 import ObsidianIcon from './obsidian/Icon.vue'
 import { Strudel } from '@/entities/Strudel'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { GlobalStore } from '@/stores/GlobalStore'
 
 const props = defineProps<{
@@ -41,10 +41,6 @@ onMounted(() => {
   const drawContext = canvas.value.getContext('2d')
 
   props.strudelBlock.setDrawContext(drawContext)
-})
-
-onUnmounted(() => {
-  stop()
 })
 </script>
 

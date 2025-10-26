@@ -5,7 +5,7 @@ import { createApp, App as VueApp } from 'vue'
 import { createPinia } from 'pinia'
 import VueEntry from './App.vue'
 import { StrudelConfig } from './services/StrudelConfig'
-import { strudelStateField } from './editor/StrudelPlugin'
+import { strudelEditorExtension } from './editor/StrudelPlugin'
 import { highlightExtension } from './editor/StrudelHighlight'
 import { samples } from '@/strudel/init.js'
 
@@ -45,7 +45,7 @@ export default class StrudelPlugin extends Plugin {
 
     this.initializeVue()
 
-    this.registerEditorExtension(strudelStateField)
+    this.registerEditorExtension(strudelEditorExtension)
     this.registerEditorExtension(highlightExtension)
 
     GlobalStore.getInstance().initStrudel()

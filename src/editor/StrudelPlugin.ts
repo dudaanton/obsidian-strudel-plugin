@@ -3,10 +3,103 @@ import { Decoration, DecorationSet, EditorView } from '@codemirror/view'
 import { editorLivePreviewField, editorInfoField } from 'obsidian'
 import { StrudelHeaderWidget } from './StrudelHeaderWidget'
 import { STRUDEL_CODEBLOCK_KEYWORD } from '@/constants/keywords'
+import { genid } from '@/helpers/vueUtils'
 import { GlobalStore } from '@/stores/GlobalStore'
+import { Strudel } from '@/entities/Strudel'
 
-function buildStrudelDecorations(state: EditorState): DecorationSet {
+const findBlocks = (
+  state: EditorState,
+  from: number = 1,
+  to: number = state.doc.length
+): StrudelBlockInfo[] => {
+  const blocks: StrudelBlockInfo[] = []
+
+  if (from === to) return blocks
+
+  const startLine = state.doc.lineAt(from)
+  const endLine = state.doc.lineAt(to)
+
+  for (let i = startLine.number; i <= endLine.number; i++) {
+    const line = state.doc.line(i)
+
+    if (line.text.trim() === `\`\`\`${STRUDEL_CODEBLOCK_KEYWORD}`) {
+      const startPos = line.from
+      let endLineNumber = i + 1
+      let endPos = startPos
+
+      while (endLineNumber <= state.doc.lines) {
+        const endLine = state.doc.line(endLineNumber)
+        if (endLine.text.trim() === '```') {
+          endPos = endLine.to
+          break
+        }
+        endLineNumber++
+      }
+
+      if (endPos > startPos) {
+        blocks.push({
+          id: genid(),
+          from: startPos,
+          to: endPos,
+        })
+      }
+    }
+  }
+
+  return blocks
+}
+
+interface StrudelBlockInfo {
+  id: string
+  from: number
+  to: number
+}
+
+const strudelBlocksField = StateField.define<readonly StrudelBlockInfo[]>({
+  create(state) {
+    return findBlocks(state)
+  },
+  update(blocks, tr) {
+    if (
+      !tr.docChanged &&
+      tr.state.field(editorLivePreviewField) === tr.startState.field(editorLivePreviewField)
+    )
+      return blocks
+
+    const oldBlocks: StrudelBlockInfo[] = []
+
+    for (const block of blocks) {
+      const newPos = { from: tr.changes.mapPos(block.from), to: tr.changes.mapPos(block.to) }
+      // If the block still exists after the change
+      if (newPos.from !== newPos.to) {
+        oldBlocks.push({ ...block, ...newPos })
+      }
+    }
+
+    const newBlocks = findBlocks(tr.state)
+
+    for (const newBlock of newBlocks) {
+      // If a line is added or removed before a block, its position shifts by 1.
+      // Therefore, we look for blocks that match by 'to' and are close by 'from'.
+      const existingBlock = oldBlocks.find(
+        (oldBlock) =>
+          (oldBlock.from === newBlock.from ||
+            oldBlock.from - 1 === newBlock.from ||
+            oldBlock.from + 1 === newBlock.from) &&
+          oldBlock.to === newBlock.to
+      )
+      if (existingBlock) {
+        newBlock.id = existingBlock.id
+      }
+    }
+
+    return newBlocks
+  },
+})
+
+const buildStrudelDecorations = (state: EditorState): DecorationSet => {
   const builder = new RangeSetBuilder<Decoration>()
+  const blocks = state.field(strudelBlocksField)
 
   if (!state.field(editorLivePreviewField)) {
     return builder.finish()
@@ -17,73 +110,71 @@ function buildStrudelDecorations(state: EditorState): DecorationSet {
     return builder.finish()
   }
 
-  for (let i = 1; i <= state.doc.lines; i++) {
-    const line = state.doc.line(i)
+  const widgets: StrudelHeaderWidget[] = []
 
-    if (line.text.trim() === `\`\`\`${STRUDEL_CODEBLOCK_KEYWORD}`) {
-      const codeLines = []
-      let endLineFound = false
+  for (const block of blocks) {
+    const code = state.doc.sliceString(
+      state.doc.lineAt(block.from).to + 1,
+      state.doc.lineAt(block.to).from - 1
+    )
 
-      // find the end of the code block and collect code lines
-      let endLineNumber = i + 1
-      while (endLineNumber <= state.doc.lines) {
-        const endLine = state.doc.line(endLineNumber)
-        if (endLine.text.trim() === '```') {
-          endLineFound = true
-          break
-        }
-        codeLines.push(endLine.text)
-        endLineNumber++
-      }
-
-      if (!endLineFound) {
-        continue // skip if no closing ```
-      }
-
-      const code = codeLines.join('\n')
-
-      if (!code.trim()) {
-        continue // skip empty code blocks
-      }
-
-      const widget = new StrudelHeaderWidget(code, currentFile.path, state.doc.line(i + 1).from)
-
-      // searching for existing instance
-      const existingInstance = GlobalStore.getInstance().strudelBlocks.value.find((s) =>
-        s.compare(widget.getInstance())
-      )
-
-      if (existingInstance) {
-        existingInstance.code = code
-        existingInstance.lineFrom = state.doc.line(i + 1).from
-        // update instance at newly created widget
-        widget.updateInstance(existingInstance)
-      }
-
-      // add widget at the start of the code block
-      builder.add(
-        line.from,
-        line.from,
-        Decoration.widget({
-          widget,
-          block: true,
-          side: -1,
-        })
-      )
+    if (!code.trim()) {
+      continue
     }
+
+    const codePosFrom = state.doc.lineAt(block.from).to + 1
+
+    const existingBlock = GlobalStore.getInstance().strudelBlocks.value.find(
+      (t) => t.id === block.id
+    ) as Strudel
+
+    if (existingBlock) {
+      existingBlock.code = code
+      existingBlock.posFrom = block.from
+      existingBlock.codePosFrom = codePosFrom
+    }
+
+    const widget = new StrudelHeaderWidget(
+      existingBlock ||
+        new Strudel({
+          id: block.id,
+          code,
+          filePath: currentFile.path,
+          posFrom: block.from,
+          codePosFrom,
+        })
+    )
+
+    widgets.push(widget)
+  }
+
+  widgets.sort((a, b) => a.getBlock().posFrom - b.getBlock().posFrom)
+
+  console.log('Building Strudel decorations for widgets:', widgets.length)
+
+  for (const widget of widgets) {
+    // add widget at the start of the code block
+    builder.add(
+      widget.getBlock().posFrom,
+      widget.getBlock().posFrom,
+      Decoration.widget({
+        widget,
+        block: true,
+        side: -1,
+      })
+    )
   }
 
   return builder.finish()
 }
 
-export const strudelStateField = StateField.define<DecorationSet>({
+const strudelStateField = StateField.define<DecorationSet>({
   create(state) {
     return buildStrudelDecorations(state)
   },
   update(decorations, tr) {
     if (
       tr.docChanged ||
-      tr.selection ||
       tr.state.field(editorLivePreviewField) !== tr.startState.field(editorLivePreviewField)
     ) {
       return buildStrudelDecorations(tr.state)
@@ -95,3 +186,5 @@ export const strudelStateField = StateField.define<DecorationSet>({
     return [EditorView.decorations.from(field)]
   },
 })
+
+export const strudelEditorExtension = [strudelBlocksField, strudelStateField]

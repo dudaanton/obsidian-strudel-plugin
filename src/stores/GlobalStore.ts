@@ -69,7 +69,7 @@ export class GlobalStore {
           const locations = options.meta.miniLocations
           const editor = this.getActiveEditor()
           if (this.currentBlock.value && editor) {
-            updateMiniLocations(editor, locations || [], this.currentBlock.value.lineFrom)
+            updateMiniLocations(editor, locations || [], this.currentBlock.value.codePosFrom)
           }
         }
 

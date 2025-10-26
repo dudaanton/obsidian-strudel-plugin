@@ -1,55 +1,49 @@
 import { WidgetType } from '@codemirror/view'
-import { genid } from '@/helpers/vueUtils'
 import { GlobalStore } from '@/stores/GlobalStore'
 import { Strudel } from '@/entities/Strudel'
 
 export class StrudelHeaderWidget extends WidgetType {
-  private instance: Strudel
+  private strudelBlock: Strudel
 
-  constructor(code: string, filePath: string, lineFrom: number) {
+  constructor(strudelBlock: Strudel) {
     super()
 
-    this.instance = new Strudel({
-      id: genid(),
-      code,
-      filePath,
-      lineFrom,
-    })
+    this.strudelBlock = strudelBlock
   }
 
-  getInstance() {
-    return this.instance
-  }
-
-  // should be called before any DOM updates
-  updateInstance(newInstance: Strudel) {
-    this.instance = newInstance
+  getBlock() {
+    return this.strudelBlock
   }
 
   toDOM() {
     const container = document.createElement('div')
-    container.id = this.instance.id
+    container.id = this.strudelBlock.id
 
-    container.createDiv({ attr: { 'data-strudel-id': this.instance.id } })
+    container.createDiv({ attr: { 'data-strudel-id': this.strudelBlock.id } })
 
-    if (!GlobalStore.getInstance().strudelBlocks.value.find((t) => t.id === this.instance.id)) {
-      GlobalStore.getInstance().strudelBlocks.value.push(this.instance)
+    if (!GlobalStore.getInstance().strudelBlocks.value.find((t) => t.id === this.strudelBlock.id)) {
+      GlobalStore.getInstance().strudelBlocks.value.push(this.strudelBlock)
     }
+
+    // In some cases, CodeMirror renders a widget immediately after its removal,
+    // deleting the container from the DOM. This means Vue doesn't have enough time
+    // to unmount the component from the old container.
+    // To avoid this issue, we render the block with a slight delay.
+    setTimeout(() => {
+      this.strudelBlock.show()
+    })
 
     return container
   }
 
   destroy() {
     const store = GlobalStore.getInstance()
-    const index = store.strudelBlocks.value.findIndex((t) => t.id === this.instance.id)
-    if (index !== -1) {
-      // store.strudelBlocks.value[index].cleanup()
-      store.strudelBlocks.value.splice(index, 1)
-    }
+
+    store.strudelBlocks.value.find((t) => t.id === this.strudelBlock.id)?.hide()
   }
 
   eq(other: StrudelHeaderWidget) {
-    return this.instance.compare(other.instance)
+    return this.strudelBlock.id === other.strudelBlock.id
   }
 
   ignoreEvent() {
