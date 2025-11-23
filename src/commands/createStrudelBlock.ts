@@ -15,7 +15,6 @@ export const createStrudelBlock = async (editor: Editor) => {
 
 \`\`\``
 
-
   if (selection) {
     editor.replaceSelection(strudelBlock)
   } else {

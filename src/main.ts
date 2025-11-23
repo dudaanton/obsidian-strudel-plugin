@@ -68,13 +68,13 @@ export default class StrudelPlugin extends Plugin {
       },
     })
 
-    // this.addCommand({
-    //   id: 'create-strudel-block',
-    //   name: 'Create new strudel block',
-    //   callback: () => {
-    //     createStrudelBlock()
-    //   },
-    // })
+    this.addCommand({
+      id: 'create-strudel-block',
+      name: 'Create new strudel block',
+      editorCallback: (editor: Editor) => {
+        createStrudelBlock(editor)
+      },
+    })
   }
 
   onunload() {
