@@ -41,7 +41,7 @@ export class GlobalStore {
     const view = activeLeaf?.view as MarkdownView
 
     if (activeLeaf && view.editor) {
-      return (view.editor as Editor & { cm: EditorView }).cm as EditorView
+      return (view.editor as Editor & { cm: EditorView }).cm
     }
   }
 
@@ -73,7 +73,7 @@ export class GlobalStore {
     this.isPlaying.value = false
   }
 
-  public drawer: any | null = null
+  public drawer: any = null
 
   public async initStrudel() {
     this.repl = await init({

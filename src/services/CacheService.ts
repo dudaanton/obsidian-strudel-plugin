@@ -35,7 +35,7 @@ export class CacheService {
         const data = JSON.parse(content)
         return data
       }
-    } catch (error) {
+    } catch {
       // ignore error
     }
   }
@@ -63,6 +63,6 @@ export class CacheService {
   }
 
   escapeFileName(fileName: string): string {
-    return fileName.replace(/[^a-z0-9_\-\.]/gi, '_')
+    return fileName.replace(/[^a-z0-9_\-.]/gi, '_')
   }
 }

@@ -1,4 +1,4 @@
-import { RangeSetBuilder, StateEffect, StateField, Prec } from '@codemirror/state'
+import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, DecorationSet, EditorView } from '@codemirror/view'
 
 export const setMiniLocations = StateEffect.define<{

@@ -12,11 +12,8 @@ import { samples } from '@/strudel/init.js'
 import './editor/SyntaxHighlighting.js'
 import { createStrudelBlock } from './commands/createStrudelBlock'
 
-interface PluginData {}
-
 export default class StrudelPlugin extends Plugin {
   strudelConfig: StrudelConfig
-  private data: PluginData = {}
 
   private vueApp: VueApp | null = null
 
@@ -41,14 +38,14 @@ export default class StrudelPlugin extends Plugin {
 
     this.addSettingTab(new StrudelSettingTab(this.app, this))
 
-    console.log('Strudel REPL Plugin loaded.')
+    console.debug('Strudel REPL plugin loaded.')
 
     this.initializeVue()
 
     this.registerEditorExtension(strudelEditorExtension)
     this.registerEditorExtension(highlightExtension)
 
-    GlobalStore.getInstance().initStrudel()
+    void GlobalStore.getInstance().initStrudel()
 
     this.addCommand({
       id: 'play',
@@ -70,7 +67,7 @@ export default class StrudelPlugin extends Plugin {
 
     this.addCommand({
       id: 'create-strudel-block',
-      name: 'Create new strudel block',
+      name: 'Create new Strudel block',
       editorCallback: (editor: Editor) => {
         createStrudelBlock(editor)
       },
@@ -83,7 +80,7 @@ export default class StrudelPlugin extends Plugin {
       this.vueApp.unmount()
       document.getElementById('strudel-vue-root')?.remove()
     }
-    console.log('Strudel REPL plugin unloaded.')
+    console.debug('Strudel REPL plugin unloaded.')
   }
 
   async loadSettings() {
@@ -109,7 +106,7 @@ class StrudelSettingTab extends PluginSettingTab {
 
     containerEl.empty()
 
-    containerEl.createEl('h2', { text: 'Strudel REPL Settings' })
+    new Setting(containerEl).setName('Strudel REPL settings').setHeading()
 
     new Setting(containerEl)
       .setName('Sounds cache directory')

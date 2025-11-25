@@ -22,8 +22,9 @@ export class StrudelConfig {
   public saveToCache = true
   public samplesToPreload: string[] = [...defaultSamples]
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() {
+    return
+  }
 
   public static getInstance(): StrudelConfig {
     if (!StrudelConfig.instance) {

@@ -1,9 +1,9 @@
 import { STRUDEL_CODEBLOCK_KEYWORD } from '@/constants/keywords'
 import { Editor, Notice } from 'obsidian'
 
-export const createStrudelBlock = async (editor: Editor) => {
+export const createStrudelBlock = (editor: Editor) => {
   if (!editor) {
-    new Notice('No active markdown editor found.', 3000)
+    new Notice('No active Markdown editor found.', 3000)
     return
   }
 
