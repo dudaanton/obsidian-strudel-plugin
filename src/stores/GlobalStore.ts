@@ -119,7 +119,7 @@ export class GlobalStore {
         const currentFrame = haps.filter((hap: any) => hap.isActive(time))
         highlightMiniLocations(editor, time, currentFrame)
 
-        const rootStyles = getComputedStyle(document.getElementsByTagName('body')[0])
+        const rootStyles = getComputedStyle(activeDocument.getElementsByTagName('body')[0])
         const playheadColor = rootStyles.getPropertyValue('--text-accent').trim()
         const inactiveColor = rootStyles
           .getPropertyValue('--background-modifier-active-hover')

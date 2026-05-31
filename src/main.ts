@@ -18,9 +18,9 @@ export default class StrudelPlugin extends Plugin {
   private vueApp: VueApp | null = null
 
   initializeVue() {
-    const rootContainer = document.createElement('div')
+    const rootContainer = activeDocument.createElement('div')
     rootContainer.id = 'strudel-vue-root'
-    document.body.appendChild(rootContainer)
+    activeDocument.body.appendChild(rootContainer)
 
     this.vueApp = createApp(VueEntry)
     this.vueApp.use(createPinia())
@@ -49,7 +49,7 @@ export default class StrudelPlugin extends Plugin {
 
     this.addCommand({
       id: 'play',
-      name: 'Play strudel block at cursor',
+      name: 'Play strudel block at caret',
       editorCallback: (editor: Editor) => {
         const cursor = editor.getCursor()
 
@@ -78,7 +78,7 @@ export default class StrudelPlugin extends Plugin {
     GlobalStore.getInstance().destroy()
     if (this.vueApp) {
       this.vueApp.unmount()
-      document.getElementById('strudel-vue-root')?.remove()
+      activeDocument.getElementById('strudel-vue-root')?.remove()
     }
     console.debug('Strudel REPL plugin unloaded.')
   }
@@ -105,8 +105,6 @@ class StrudelSettingTab extends PluginSettingTab {
     const { containerEl } = this
 
     containerEl.empty()
-
-    new Setting(containerEl).setName('Strudel REPL settings').setHeading()
 
     new Setting(containerEl)
       .setName('Sounds cache directory')
@@ -135,7 +133,7 @@ class StrudelSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Samples to preload')
-      .setDesc('URLs of audio samples to preload on startup for faster access.')
+      .setDesc('Audio sample urls to preload on startup for faster access.')
       .addTextArea((text) =>
         text
           .setPlaceholder('Enter sample URLs, one per line')

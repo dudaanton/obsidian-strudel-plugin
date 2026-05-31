@@ -16,7 +16,7 @@ export class StrudelHeaderWidget extends WidgetType {
   }
 
   toDOM() {
-    const container = document.createElement('div')
+    const container = activeDocument.createElement('div')
     container.id = this.strudelBlock.id
 
     container.createDiv({ attr: { 'data-strudel-id': this.strudelBlock.id } })
@@ -29,7 +29,7 @@ export class StrudelHeaderWidget extends WidgetType {
     // deleting the container from the DOM. This means Vue doesn't have enough time
     // to unmount the component from the old container.
     // To avoid this issue, we render the block with a slight delay.
-    setTimeout(() => {
+    window.setTimeout(() => {
       this.strudelBlock.show()
     })
 

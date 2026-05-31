@@ -110,7 +110,7 @@ const miniLocationHighlights = EditorView.decorations.compute(
         const colorMod = hap.value?.color ? ` strudel-mark_${hap.value.color}` : ''
         const classStr = `strudel-mark${colorMod}`
         // Get explicit channels for color values
-        /* 
+        /*
       const swatch = document.createElement('div');
       swatch.style.color = color;
       document.body.appendChild(swatch);
@@ -142,4 +142,3 @@ const miniLocationHighlights = EditorView.decorations.compute(
 )
 
 export const highlightExtension = [miniLocations, visibleMiniLocations, miniLocationHighlights]
-
